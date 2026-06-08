@@ -1,0 +1,40 @@
+node_modules/
+.pnpm-store/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.idea
+
+.env
+.env.test
+.env.production
+.env.local
+serviceAccountKey.json
+
+src/config/generated/
+.prisma/
+dist/
+build/
+uploads/
+logs/
+*.log
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# IDEs (IntelliJ, WebStorm, VSCode)
+.idea/
+.vscode/
+*.swp
+*.swo
+
+coverage/
+.nyc_output/

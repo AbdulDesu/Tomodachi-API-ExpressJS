@@ -1,0 +1,123 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Gender {
+  MALE
+  FEMALE
+  NON_BINARY
+}
+
+enum SwipeType {
+  LIKE
+  DISLIKE
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  LOCATION
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String?  @unique
+  phone     String   @unique
+  password  String?
+  fcmToken  String?
+  isBot     Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  profile      Profile?
+  photos       UserPhoto[]
+  swipesSent   Swipe[]       @relation("SwipesSent")
+  swipesRecv   Swipe[]       @relation("SwipesReceived")
+  participants Participant[]
+  messages     Message[]
+
+  @@index([phone])
+}
+
+model Profile {
+  id              String    @id @default(uuid())
+  userId          String    @unique
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name            String
+  photoUrl        String?
+  bio             String?
+  birthdate       DateTime?
+  gender          Gender
+  preferredGender Gender
+  tags            String[]
+
+  location Unsupported("geometry(Point, 4326)")
+
+  @@index([location], name: "location_idx", type: Gist)
+}
+
+model UserPhoto {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  url       String
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, order])
+}
+
+model Swipe {
+  id        String    @id @default(uuid())
+  swiperId  String
+  swipeeId  String
+  type      SwipeType
+  createdAt DateTime  @default(now())
+
+  swiper User @relation("SwipesSent", fields: [swiperId], references: [id], onDelete: Cascade)
+  swipee User @relation("SwipesReceived", fields: [swipeeId], references: [id], onDelete: Cascade)
+
+  @@unique([swiperId, swipeeId])
+  @@index([swiperId, type])
+}
+
+model Conversation {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  participants Participant[]
+  messages     Message[]
+}
+
+model Participant {
+  id             String @id @default(uuid())
+  conversationId String
+  userId         String
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+}
+
+model Message {
+  id             String      @id @default(uuid())
+  conversationId String
+  senderId       String
+  content        String
+  type           MessageType @default(TEXT)
+  isRead         Boolean     @default(false)
+  createdAt      DateTime    @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User         @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt(sort: Desc)])
+}
