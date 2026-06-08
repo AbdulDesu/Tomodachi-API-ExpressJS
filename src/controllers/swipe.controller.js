@@ -1,7 +1,7 @@
 import prisma from '../config/database.js';
-import { APIResponseOK, APIResponseBR, APIResponseErr } from '../helper/api.js';
+import {APIResponseOK, APIResponseBR, APIResponseErr, handleErrorAsync} from '../helper/api.js';
 
-export const processSwipe = async (req, res) => {
+export const processSwipe = handleErrorAsync(async (req, res) => {
     const swiperId = req.user.id;
     const { targetUserId, action } = req.body;
 
@@ -108,4 +108,4 @@ export const processSwipe = async (req, res) => {
         console.error('Gagal memproses aksi swipe:', error);
         return APIResponseErr(res, false, 'Terjadi kesalahan sistem saat memproses swipe.', null);
     }
-};
+});

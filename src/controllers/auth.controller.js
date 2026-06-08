@@ -3,13 +3,13 @@ import bcrypt from 'bcrypt';
 import redisClient from '../config/redis.js';
 import prisma from '../config/database.js';
 import { messaging } from '../config/firebase.js';
-import { APIResponseOK, APIResponseBR, APIResponseErr } from '../helper/api.js';
+import {APIResponseOK, APIResponseBR, APIResponseErr, handleErrorAsync} from '../helper/api.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'tomodachi-super-secret-key-2026';
 const OTP_TTL_SECONDS = 180;
 const SALT_ROUNDS = 10;
 
-export const requestOtp = async (req, res) => {
+export const requestOtp = handleErrorAsync(async (req, res) => {
     const { phone, fcmToken } = req.body;
 
     if (!phone || !fcmToken) {
@@ -42,9 +42,9 @@ export const requestOtp = async (req, res) => {
     console.log(`[DEV ONLY] OTP untuk ${phone} adalah: ${otp}`);
 
     return APIResponseOK(res, true, 'OTP berhasil dikirim via notifikasi.', null);
-};
+});
 
-export const verifyOtp = async (req, res) => {
+export const verifyOtp = handleErrorAsync(async (req, res) => {
     const { phone, otp, fcmToken } = req.body;
 
     if (!phone || !otp) {
@@ -90,9 +90,9 @@ export const verifyOtp = async (req, res) => {
         user,
         isProfileComplete: !!profile
     });
-};
+});
 
-export const setAccountPassword = async (req, res) => {
+export const setAccountPassword = handleErrorAsync(async (req, res) => {
     const userId = req.user.id;
     const { password } = req.body;
 
@@ -113,9 +113,9 @@ export const setAccountPassword = async (req, res) => {
         console.error('Gagal menyetel password:', error);
         return APIResponseErr(res, false, 'Terjadi kesalahan internal saat memproses password.', null);
     }
-};
+});
 
-export const loginWithPassword = async (req, res) => {
+export const loginWithPassword = handleErrorAsync(async (req, res) => {
     const { phone, password, fcmToken } = req.body;
 
     if (!phone || !password) {
@@ -157,4 +157,4 @@ export const loginWithPassword = async (req, res) => {
         console.error('Gagal login via password:', error);
         return APIResponseErr(res, false, 'Terjadi kesalahan sistem saat memproses login.', null);
     }
-};
+});

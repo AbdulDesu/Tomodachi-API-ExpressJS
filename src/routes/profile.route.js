@@ -9,7 +9,7 @@ const router = Router();
 router.post('/upsert',
     verifyToken,
     uploadPhoto.single('photo'),
-    handleErrorAsync(upsertProfile)
+    upsertProfile
 );
 
 router.patch('/edit', verifyToken, uploadPhoto.single('photo'), handleErrorAsync(updateProfileFields));

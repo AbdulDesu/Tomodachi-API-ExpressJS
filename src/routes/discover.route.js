@@ -5,6 +5,6 @@ import { handleErrorAsync } from '../helper/api.js';
 
 const router = Router();
 
-router.get('/nearby', verifyToken, handleErrorAsync(getNearbyProfiles));
+router.get('/nearby', verifyToken, getNearbyProfiles);
 
 export default router;

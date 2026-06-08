@@ -1,10 +1,10 @@
 import prisma from '../config/database.js';
 import redisClient from '../config/redis.js';
-import {APIResponseOK, APIResponseErr, APIResponseBR} from '../helper/api.js';
+import {APIResponseOK, APIResponseErr, APIResponseBR, handleErrorAsync} from '../helper/api.js';
 import { messaging } from '../config/firebase.js';
 import {getIO} from "../sockets/index.js";
 
-export const getChatList = async (req, res) => {
+export const getChatList = handleErrorAsync(async (req, res) => {
     const currentUserId = req.user.id;
 
     const conversations = await prisma.conversation.findMany({
@@ -83,7 +83,7 @@ export const getChatList = async (req, res) => {
     });
 
     return APIResponseOK(res, true, 'Berhasil memuat daftar obrolan.', formattedChatList);
-};
+});
 
 export const getChatHistory = async (req, res) => {
     const { conversationId } = req.params;

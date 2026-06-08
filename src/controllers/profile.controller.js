@@ -1,7 +1,7 @@
 import prisma from '../config/database.js';
 import {APIResponseOK, APIResponseBR, APIResponseErr, handleErrorAsync} from '../helper/api.js';
 
-export const upsertProfile = async (req, res) => {
+export const upsertProfile = handleErrorAsync(async (req, res) => {
     const userId = req.user.id;
     let { name, birthdate, tags, latitude, longitude } = req.body;
 
@@ -61,9 +61,9 @@ export const upsertProfile = async (req, res) => {
         console.error('Gagal menyimpan profil:', error);
         return APIResponseErr(res, false, 'Terjadi kesalahan internal.', null);
     }
-};
+});
 
-export const updateProfileFields = async (req, res) => {
+export const updateProfileFields = handleErrorAsync(async (req, res) => {
     const userId = req.user.id;
     const { name, bio, birthdate, gender, preferredGender, tags, latitude, longitude } = req.body;
 
@@ -106,4 +106,4 @@ export const updateProfileFields = async (req, res) => {
         console.error('Gagal memperbarui data profil secara parsial:', error);
         return APIResponseErr(res, false, 'Gagal memproses pembaruan data profil.', null);
     }
-};
+});

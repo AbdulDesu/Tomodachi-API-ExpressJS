@@ -2,7 +2,7 @@ import prisma from '../config/database.js';
 import {APIResponseBR, APIResponseOK, handleErrorAsync} from "../helper/api.js";
 import {spawnBotsJustInTime} from "../helper/spawner.js";
 
-export const getNearbyProfiles = async (req, res) => {
+export const getNearbyProfiles = handleErrorAsync(async (req, res) => {
     const userId = req.user.id;
     const radiusKm = parseInt(req.query.radius) || 10;
     const limit = parseInt(req.query.limit) || 20;
@@ -71,4 +71,4 @@ export const getNearbyProfiles = async (req, res) => {
     }
 
     return APIResponseOK(res, true, 'Berhasil memuat profil di sekitar.', nearbyProfiles);
-};
+});
