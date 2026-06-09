@@ -1,6 +1,6 @@
 const sendResponse = (res, statusCode, isOk, message, data) => {
     return res.status(statusCode).json({
-        is_ok: isOk,
+        success: isOk,
         message: message,
         data: data
     });
