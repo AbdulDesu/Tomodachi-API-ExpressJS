@@ -3,7 +3,14 @@ import bcrypt from 'bcrypt';
 import redisClient from '../config/redis.js';
 import prisma from '../config/database.js';
 import { messaging } from '../config/firebase.js';
-import {APIResponseOK, APIResponseBR, APIResponseErr, handleErrorAsync} from '../helper/api.js';
+import {
+    APIResponseOK,
+    APIResponseBR,
+    APIResponseErr,
+    handleErrorAsync,
+    APIResponseUnAuth,
+    APIResponseNF
+} from '../helper/api.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'tomodachi-super-secret-key-2026';
 const OTP_TTL_SECONDS = 180;
@@ -13,7 +20,7 @@ export const requestOtp = handleErrorAsync(async (req, res) => {
     const { phone, fcmToken } = req.body;
 
     if (!phone || !fcmToken) {
-        return APIResponseBR(res, false, 'Nomor telepon dan FCM Token wajib diisi.', null);
+        return APIResponseBR(res, false, 'Nomor telepon dan FCM Token wajib diisi.');
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -41,14 +48,14 @@ export const requestOtp = handleErrorAsync(async (req, res) => {
 
     console.log(`[DEV ONLY] OTP untuk ${phone} adalah: ${otp}`);
 
-    return APIResponseOK(res, true, 'OTP berhasil dikirim via notifikasi.', null);
+    return APIResponseOK(res, true, 'OTP berhasil dikirim via notifikasi.');
 });
 
 export const verifyOtp = handleErrorAsync(async (req, res) => {
     const { phone, otp, fcmToken } = req.body;
 
     if (!phone || !otp) {
-        return APIResponseBR(res, false, 'Nomor telepon dan OTP wajib diisi.', null);
+        return APIResponseBR(res, false, 'Nomor telepon dan OTP wajib diisi.');
     }
 
     const redisKey = `otp:${phone}`;
@@ -56,11 +63,11 @@ export const verifyOtp = handleErrorAsync(async (req, res) => {
     const cachedOtp = await redisClient.get(redisKey);
 
     if (!cachedOtp) {
-        return APIResponseBR(res, false, 'OTP sudah kadaluarsa atau tidak valid.', null);
+        return APIResponseBR(res, false, 'OTP sudah kadaluarsa atau tidak valid.');
     }
 
     if (cachedOtp !== otp) {
-        return APIResponseBR(res, false, 'Kode OTP salah.', null);
+        return APIResponseBR(res, false, 'Kode OTP salah.');
     }
 
     await redisClient.del(redisKey);
@@ -97,7 +104,7 @@ export const setAccountPassword = handleErrorAsync(async (req, res) => {
     const { password } = req.body;
 
     if (!password || password.length < 6) {
-        return APIResponseBR(res, false, 'Password minimal harus terdiri dari 6 karakter.', null);
+        return APIResponseBR(res, false, 'Password minimal harus terdiri dari 6 karakter.');
     }
 
     try {
@@ -108,10 +115,10 @@ export const setAccountPassword = handleErrorAsync(async (req, res) => {
             data: { password: hashedPassword }
         });
 
-        return APIResponseOK(res, true, 'Keamanan akun berhasil ditingkatkan. Password telah aktif.', null);
+        return APIResponseOK(res, true, 'Keamanan akun berhasil ditingkatkan. Password telah aktif.');
     } catch (error) {
         console.error('Gagal menyetel password:', error);
-        return APIResponseErr(res, false, 'Terjadi kesalahan internal saat memproses password.', null);
+        return APIResponseErr(res, false, 'Terjadi kesalahan internal saat memproses password.');
     }
 });
 
@@ -119,7 +126,7 @@ export const loginWithPassword = handleErrorAsync(async (req, res) => {
     const { phone, password, fcmToken } = req.body;
 
     if (!phone || !password) {
-        return APIResponseBR(res, false, 'Nomor telepon dan password wajib diisi.', null);
+        return APIResponseBR(res, false, 'Nomor telepon dan password wajib diisi.');
     }
 
     try {
@@ -128,13 +135,13 @@ export const loginWithPassword = handleErrorAsync(async (req, res) => {
         });
 
         if (!user || !user.password) {
-            return APIResponseUnAuth(res, false, 'Kredensial salah atau akun Anda belum mengaktifkan password.', null);
+            return APIResponseUnAuth(res, false, 'Kredensial salah atau akun Anda belum mengaktifkan password.');
         }
 
         const isPasswordMatch = await bcrypt.compare(password, user.password);
 
         if (!isPasswordMatch) {
-            return APIResponseUnAuth(res, false, 'Nomor telepon atau password salah.', null);
+            return APIResponseUnAuth(res, false, 'Nomor telepon atau password salah.');
         }
 
         if (fcmToken && fcmToken !== user.fcmToken) {
@@ -155,6 +162,22 @@ export const loginWithPassword = handleErrorAsync(async (req, res) => {
 
     } catch (error) {
         console.error('Gagal login via password:', error);
-        return APIResponseErr(res, false, 'Terjadi kesalahan sistem saat memproses login.', null);
+        return APIResponseErr(res, false, 'Terjadi kesalahan sistem saat memproses login.');
     }
 });
+
+export const identifyPhoneNumber = handleErrorAsync(async (req, res) => {
+    const {phone} = req.body;
+
+    if (!phone || !phone.length) {
+        return APIResponseBR(res, false, "Nomor Telepon dan password wajib diisi.");
+    }
+
+    const userData = await prisma.user.findUnique({ where: { phone: phone } });
+
+    if (!userData) {
+        return APIResponseOK(res, true, "Nomor telepon belum terdaftar. Silakan lanjutkan dengan OTP untuk membuat akun baru.")
+    }
+
+    return APIResponseNF(res, true, 'Nomor Telepon tidak ditemukan')
+})
