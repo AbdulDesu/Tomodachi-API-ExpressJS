@@ -51,6 +51,49 @@ export const requestOtp = handleErrorAsync(async (req, res) => {
     return APIResponseOK(res, true, 'OTP berhasil dikirim via notifikasi.');
 });
 
+export const resendOtp = handleErrorAsync(async (req, res) => {
+    const { phone, fcmToken } = req.body;
+
+    if (!phone || !fcmToken) {
+        return APIResponseBR(res, false, 'Nomor telepon dan FCM Token wajib diisi.');
+    }
+
+    const redisKey = `otp:${phone}`;
+
+    const currentTTL = await redisClient.ttl(redisKey);
+
+    if (currentTTL > 0 && currentTTL > (OTP_TTL_SECONDS - 60)) {
+        const waitTime = currentTTL - (OTP_TTL_SECONDS - 60);
+        return APIResponseBR(res, false, `Harap tunggu ${waitTime} detik sebelum meminta OTP baru.`);
+    }
+
+    const newOtp = Math.floor(100000 + Math.random() * 900000).toString();
+
+    await redisClient.setEx(redisKey, OTP_TTL_SECONDS, newOtp);
+
+    if (messaging) {
+        try {
+            await messaging.send({
+                token: fcmToken,
+                notification: {
+                    title: 'Kode Login Baru Tomodachi',
+                    body: `${newOtp} adalah kode rahasia TERBARU Anda. Jangan berikan kepada siapapun!`
+                },
+                data: {
+                    type: 'OTP_SIMULATION',
+                    otp: newOtp
+                }
+            });
+        } catch (error) {
+            console.error('Gagal mengirim ulang FCM OTP:', error);
+        }
+    }
+
+    console.log(`[DEV ONLY - RESEND] OTP TERBARU untuk ${phone} adalah: ${newOtp}`);
+
+    return APIResponseOK(res, true, 'OTP terbaru berhasil dikirim via notifikasi.');
+});
+
 export const verifyOtp = handleErrorAsync(async (req, res) => {
     const { phone, otp, fcmToken } = req.body;
 
@@ -176,8 +219,10 @@ export const identifyPhoneNumber = handleErrorAsync(async (req, res) => {
     const userData = await prisma.user.findUnique({ where: { phone: phone } });
 
     if (!userData) {
-        return APIResponseOK(res, true, "Nomor telepon belum terdaftar. Silakan lanjutkan dengan OTP untuk membuat akun baru.")
+        return APIResponseNF(res, true, "Nomor telepon belum terdaftar. Silakan lanjutkan dengan OTP untuk membuat akun baru.")
     }
 
-    return APIResponseNF(res, true, 'Nomor Telepon tidak ditemukan')
+    if(userData.password != null){
+        return APIResponseOK(res, true, 'Nomor Telepon ditemukan, dengan 2nd Auth')
+    }
 })
