@@ -7,7 +7,6 @@ import { handleErrorAsync } from '../helper/api.js';
 const router = Router();
 
 router.post('/upsert',
-    verifyToken,
     uploadPhoto.single('photo'),
     upsertProfile
 );
