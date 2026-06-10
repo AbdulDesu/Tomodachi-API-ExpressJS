@@ -386,6 +386,7 @@ type FieldRefInputType<Model, FieldType> = Model extends never ? never : FieldRe
 export const ModelName = {
   User: 'User',
   Profile: 'Profile',
+  UserPhoto: 'UserPhoto',
   Swipe: 'Swipe',
   Conversation: 'Conversation',
   Participant: 'Participant',
@@ -405,7 +406,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "profile" | "swipe" | "conversation" | "participant" | "message"
+    modelProps: "user" | "profile" | "userPhoto" | "swipe" | "conversation" | "participant" | "message"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -538,6 +539,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.ProfileCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.ProfileCountAggregateOutputType> | number
+        }
+      }
+    }
+    UserPhoto: {
+      payload: Prisma.$UserPhotoPayload<ExtArgs>
+      fields: Prisma.UserPhotoFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.UserPhotoFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPhotoPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.UserPhotoFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPhotoPayload>
+        }
+        findFirst: {
+          args: Prisma.UserPhotoFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPhotoPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.UserPhotoFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPhotoPayload>
+        }
+        findMany: {
+          args: Prisma.UserPhotoFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPhotoPayload>[]
+        }
+        create: {
+          args: Prisma.UserPhotoCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPhotoPayload>
+        }
+        createMany: {
+          args: Prisma.UserPhotoCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.UserPhotoCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPhotoPayload>[]
+        }
+        delete: {
+          args: Prisma.UserPhotoDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPhotoPayload>
+        }
+        update: {
+          args: Prisma.UserPhotoUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPhotoPayload>
+        }
+        deleteMany: {
+          args: Prisma.UserPhotoDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.UserPhotoUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.UserPhotoUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPhotoPayload>[]
+        }
+        upsert: {
+          args: Prisma.UserPhotoUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$UserPhotoPayload>
+        }
+        aggregate: {
+          args: Prisma.UserPhotoAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateUserPhoto>
+        }
+        groupBy: {
+          args: Prisma.UserPhotoGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserPhotoGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.UserPhotoCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.UserPhotoCountAggregateOutputType> | number
         }
       }
     }
@@ -880,6 +955,7 @@ export const UserScalarFieldEnum = {
   id: 'id',
   email: 'email',
   phone: 'phone',
+  password: 'password',
   fcmToken: 'fcmToken',
   isBot: 'isBot',
   createdAt: 'createdAt',
@@ -893,6 +969,7 @@ export const ProfileScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   name: 'name',
+  photoUrl: 'photoUrl',
   bio: 'bio',
   birthdate: 'birthdate',
   gender: 'gender',
@@ -901,6 +978,18 @@ export const ProfileScalarFieldEnum = {
 } as const
 
 export type ProfileScalarFieldEnum = (typeof ProfileScalarFieldEnum)[keyof typeof ProfileScalarFieldEnum]
+
+
+export const UserPhotoScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  url: 'url',
+  order: 'order',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserPhotoScalarFieldEnum = (typeof UserPhotoScalarFieldEnum)[keyof typeof UserPhotoScalarFieldEnum]
 
 
 export const SwipeScalarFieldEnum = {
@@ -1025,6 +1114,20 @@ export type ListEnumGenderFieldRefInput<$PrismaModel> = FieldRefInputType<$Prism
 
 
 /**
+ * Reference to a field of type 'Int'
+ */
+export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+    
+
+
+/**
+ * Reference to a field of type 'Int[]'
+ */
+export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+    
+
+
+/**
  * Reference to a field of type 'SwipeType'
  */
 export type EnumSwipeTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'SwipeType'>
@@ -1053,16 +1156,16 @@ export type ListEnumMessageTypeFieldRefInput<$PrismaModel> = FieldRefInputType<$
 
 
 /**
- * Reference to a field of type 'Int'
+ * Reference to a field of type 'Float'
  */
-export type IntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int'>
+export type FloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float'>
     
 
 
 /**
- * Reference to a field of type 'Int[]'
+ * Reference to a field of type 'Float[]'
  */
-export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Int[]'>
+export type ListFloatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Float[]'>
     
 
 /**
@@ -1177,6 +1280,7 @@ export type PrismaClientOptions = ({
 export type GlobalOmitConfig = {
   user?: Prisma.UserOmit
   profile?: Prisma.ProfileOmit
+  userPhoto?: Prisma.UserPhotoOmit
   swipe?: Prisma.SwipeOmit
   conversation?: Prisma.ConversationOmit
   participant?: Prisma.ParticipantOmit

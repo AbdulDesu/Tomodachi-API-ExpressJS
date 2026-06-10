@@ -28,6 +28,7 @@ export type UserMinAggregateOutputType = {
   id: string | null
   email: string | null
   phone: string | null
+  password: string | null
   fcmToken: string | null
   isBot: boolean | null
   createdAt: Date | null
@@ -38,6 +39,7 @@ export type UserMaxAggregateOutputType = {
   id: string | null
   email: string | null
   phone: string | null
+  password: string | null
   fcmToken: string | null
   isBot: boolean | null
   createdAt: Date | null
@@ -48,6 +50,7 @@ export type UserCountAggregateOutputType = {
   id: number
   email: number
   phone: number
+  password: number
   fcmToken: number
   isBot: number
   createdAt: number
@@ -60,6 +63,7 @@ export type UserMinAggregateInputType = {
   id?: true
   email?: true
   phone?: true
+  password?: true
   fcmToken?: true
   isBot?: true
   createdAt?: true
@@ -70,6 +74,7 @@ export type UserMaxAggregateInputType = {
   id?: true
   email?: true
   phone?: true
+  password?: true
   fcmToken?: true
   isBot?: true
   createdAt?: true
@@ -80,6 +85,7 @@ export type UserCountAggregateInputType = {
   id?: true
   email?: true
   phone?: true
+  password?: true
   fcmToken?: true
   isBot?: true
   createdAt?: true
@@ -163,6 +169,7 @@ export type UserGroupByOutputType = {
   id: string
   email: string | null
   phone: string
+  password: string | null
   fcmToken: string | null
   isBot: boolean
   createdAt: Date
@@ -194,11 +201,13 @@ export type UserWhereInput = {
   id?: Prisma.StringFilter<"User"> | string
   email?: Prisma.StringNullableFilter<"User"> | string | null
   phone?: Prisma.StringFilter<"User"> | string
+  password?: Prisma.StringNullableFilter<"User"> | string | null
   fcmToken?: Prisma.StringNullableFilter<"User"> | string | null
   isBot?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   profile?: Prisma.XOR<Prisma.ProfileNullableScalarRelationFilter, Prisma.ProfileWhereInput> | null
+  photos?: Prisma.UserPhotoListRelationFilter
   swipesSent?: Prisma.SwipeListRelationFilter
   swipesRecv?: Prisma.SwipeListRelationFilter
   participants?: Prisma.ParticipantListRelationFilter
@@ -209,11 +218,13 @@ export type UserOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrderInput | Prisma.SortOrder
   phone?: Prisma.SortOrder
+  password?: Prisma.SortOrderInput | Prisma.SortOrder
   fcmToken?: Prisma.SortOrderInput | Prisma.SortOrder
   isBot?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   profile?: Prisma.ProfileOrderByWithRelationInput
+  photos?: Prisma.UserPhotoOrderByRelationAggregateInput
   swipesSent?: Prisma.SwipeOrderByRelationAggregateInput
   swipesRecv?: Prisma.SwipeOrderByRelationAggregateInput
   participants?: Prisma.ParticipantOrderByRelationAggregateInput
@@ -227,11 +238,13 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
+  password?: Prisma.StringNullableFilter<"User"> | string | null
   fcmToken?: Prisma.StringNullableFilter<"User"> | string | null
   isBot?: Prisma.BoolFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   profile?: Prisma.XOR<Prisma.ProfileNullableScalarRelationFilter, Prisma.ProfileWhereInput> | null
+  photos?: Prisma.UserPhotoListRelationFilter
   swipesSent?: Prisma.SwipeListRelationFilter
   swipesRecv?: Prisma.SwipeListRelationFilter
   participants?: Prisma.ParticipantListRelationFilter
@@ -242,6 +255,7 @@ export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrderInput | Prisma.SortOrder
   phone?: Prisma.SortOrder
+  password?: Prisma.SortOrderInput | Prisma.SortOrder
   fcmToken?: Prisma.SortOrderInput | Prisma.SortOrder
   isBot?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -258,6 +272,7 @@ export type UserScalarWhereWithAggregatesInput = {
   id?: Prisma.StringWithAggregatesFilter<"User"> | string
   email?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   phone?: Prisma.StringWithAggregatesFilter<"User"> | string
+  password?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   fcmToken?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
   isBot?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
@@ -268,11 +283,13 @@ export type UserCreateInput = {
   id?: string
   email?: string | null
   phone: string
+  password?: string | null
   fcmToken?: string | null
   isBot?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   profile?: Prisma.ProfileCreateNestedOneWithoutUserInput
+  photos?: Prisma.UserPhotoCreateNestedManyWithoutUserInput
   swipesSent?: Prisma.SwipeCreateNestedManyWithoutSwiperInput
   swipesRecv?: Prisma.SwipeCreateNestedManyWithoutSwipeeInput
   participants?: Prisma.ParticipantCreateNestedManyWithoutUserInput
@@ -283,11 +300,13 @@ export type UserUncheckedCreateInput = {
   id?: string
   email?: string | null
   phone: string
+  password?: string | null
   fcmToken?: string | null
   isBot?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   profile?: Prisma.ProfileUncheckedCreateNestedOneWithoutUserInput
+  photos?: Prisma.UserPhotoUncheckedCreateNestedManyWithoutUserInput
   swipesSent?: Prisma.SwipeUncheckedCreateNestedManyWithoutSwiperInput
   swipesRecv?: Prisma.SwipeUncheckedCreateNestedManyWithoutSwipeeInput
   participants?: Prisma.ParticipantUncheckedCreateNestedManyWithoutUserInput
@@ -298,11 +317,13 @@ export type UserUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBot?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneWithoutUserNestedInput
+  photos?: Prisma.UserPhotoUpdateManyWithoutUserNestedInput
   swipesSent?: Prisma.SwipeUpdateManyWithoutSwiperNestedInput
   swipesRecv?: Prisma.SwipeUpdateManyWithoutSwipeeNestedInput
   participants?: Prisma.ParticipantUpdateManyWithoutUserNestedInput
@@ -313,11 +334,13 @@ export type UserUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBot?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUncheckedUpdateOneWithoutUserNestedInput
+  photos?: Prisma.UserPhotoUncheckedUpdateManyWithoutUserNestedInput
   swipesSent?: Prisma.SwipeUncheckedUpdateManyWithoutSwiperNestedInput
   swipesRecv?: Prisma.SwipeUncheckedUpdateManyWithoutSwipeeNestedInput
   participants?: Prisma.ParticipantUncheckedUpdateManyWithoutUserNestedInput
@@ -328,6 +351,7 @@ export type UserCreateManyInput = {
   id?: string
   email?: string | null
   phone: string
+  password?: string | null
   fcmToken?: string | null
   isBot?: boolean
   createdAt?: Date | string
@@ -338,6 +362,7 @@ export type UserUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBot?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -348,6 +373,7 @@ export type UserUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBot?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
@@ -358,6 +384,7 @@ export type UserCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   phone?: Prisma.SortOrder
+  password?: Prisma.SortOrder
   fcmToken?: Prisma.SortOrder
   isBot?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -368,6 +395,7 @@ export type UserMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   phone?: Prisma.SortOrder
+  password?: Prisma.SortOrder
   fcmToken?: Prisma.SortOrder
   isBot?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -378,6 +406,7 @@ export type UserMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   email?: Prisma.SortOrder
   phone?: Prisma.SortOrder
+  password?: Prisma.SortOrder
   fcmToken?: Prisma.SortOrder
   isBot?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
@@ -411,6 +440,20 @@ export type UserUpdateOneRequiredWithoutProfileNestedInput = {
   upsert?: Prisma.UserUpsertWithoutProfileInput
   connect?: Prisma.UserWhereUniqueInput
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutProfileInput, Prisma.UserUpdateWithoutProfileInput>, Prisma.UserUncheckedUpdateWithoutProfileInput>
+}
+
+export type UserCreateNestedOneWithoutPhotosInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPhotosInput, Prisma.UserUncheckedCreateWithoutPhotosInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPhotosInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutPhotosNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPhotosInput, Prisma.UserUncheckedCreateWithoutPhotosInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPhotosInput
+  upsert?: Prisma.UserUpsertWithoutPhotosInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPhotosInput, Prisma.UserUpdateWithoutPhotosInput>, Prisma.UserUncheckedUpdateWithoutPhotosInput>
 }
 
 export type UserCreateNestedOneWithoutSwipesSentInput = {
@@ -473,10 +516,12 @@ export type UserCreateWithoutProfileInput = {
   id?: string
   email?: string | null
   phone: string
+  password?: string | null
   fcmToken?: string | null
   isBot?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  photos?: Prisma.UserPhotoCreateNestedManyWithoutUserInput
   swipesSent?: Prisma.SwipeCreateNestedManyWithoutSwiperInput
   swipesRecv?: Prisma.SwipeCreateNestedManyWithoutSwipeeInput
   participants?: Prisma.ParticipantCreateNestedManyWithoutUserInput
@@ -487,10 +532,12 @@ export type UserUncheckedCreateWithoutProfileInput = {
   id?: string
   email?: string | null
   phone: string
+  password?: string | null
   fcmToken?: string | null
   isBot?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  photos?: Prisma.UserPhotoUncheckedCreateNestedManyWithoutUserInput
   swipesSent?: Prisma.SwipeUncheckedCreateNestedManyWithoutSwiperInput
   swipesRecv?: Prisma.SwipeUncheckedCreateNestedManyWithoutSwipeeInput
   participants?: Prisma.ParticipantUncheckedCreateNestedManyWithoutUserInput
@@ -517,10 +564,12 @@ export type UserUpdateWithoutProfileInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBot?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  photos?: Prisma.UserPhotoUpdateManyWithoutUserNestedInput
   swipesSent?: Prisma.SwipeUpdateManyWithoutSwiperNestedInput
   swipesRecv?: Prisma.SwipeUpdateManyWithoutSwipeeNestedInput
   participants?: Prisma.ParticipantUpdateManyWithoutUserNestedInput
@@ -531,10 +580,92 @@ export type UserUncheckedUpdateWithoutProfileInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBot?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  photos?: Prisma.UserPhotoUncheckedUpdateManyWithoutUserNestedInput
+  swipesSent?: Prisma.SwipeUncheckedUpdateManyWithoutSwiperNestedInput
+  swipesRecv?: Prisma.SwipeUncheckedUpdateManyWithoutSwipeeNestedInput
+  participants?: Prisma.ParticipantUncheckedUpdateManyWithoutUserNestedInput
+  messages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
+}
+
+export type UserCreateWithoutPhotosInput = {
+  id?: string
+  email?: string | null
+  phone: string
+  password?: string | null
+  fcmToken?: string | null
+  isBot?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  profile?: Prisma.ProfileCreateNestedOneWithoutUserInput
+  swipesSent?: Prisma.SwipeCreateNestedManyWithoutSwiperInput
+  swipesRecv?: Prisma.SwipeCreateNestedManyWithoutSwipeeInput
+  participants?: Prisma.ParticipantCreateNestedManyWithoutUserInput
+  messages?: Prisma.MessageCreateNestedManyWithoutSenderInput
+}
+
+export type UserUncheckedCreateWithoutPhotosInput = {
+  id?: string
+  email?: string | null
+  phone: string
+  password?: string | null
+  fcmToken?: string | null
+  isBot?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  profile?: Prisma.ProfileUncheckedCreateNestedOneWithoutUserInput
+  swipesSent?: Prisma.SwipeUncheckedCreateNestedManyWithoutSwiperInput
+  swipesRecv?: Prisma.SwipeUncheckedCreateNestedManyWithoutSwipeeInput
+  participants?: Prisma.ParticipantUncheckedCreateNestedManyWithoutUserInput
+  messages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
+}
+
+export type UserCreateOrConnectWithoutPhotosInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPhotosInput, Prisma.UserUncheckedCreateWithoutPhotosInput>
+}
+
+export type UserUpsertWithoutPhotosInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPhotosInput, Prisma.UserUncheckedUpdateWithoutPhotosInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPhotosInput, Prisma.UserUncheckedCreateWithoutPhotosInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPhotosInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPhotosInput, Prisma.UserUncheckedUpdateWithoutPhotosInput>
+}
+
+export type UserUpdateWithoutPhotosInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isBot?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  profile?: Prisma.ProfileUpdateOneWithoutUserNestedInput
+  swipesSent?: Prisma.SwipeUpdateManyWithoutSwiperNestedInput
+  swipesRecv?: Prisma.SwipeUpdateManyWithoutSwipeeNestedInput
+  participants?: Prisma.ParticipantUpdateManyWithoutUserNestedInput
+  messages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPhotosInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  phone?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  isBot?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  profile?: Prisma.ProfileUncheckedUpdateOneWithoutUserNestedInput
   swipesSent?: Prisma.SwipeUncheckedUpdateManyWithoutSwiperNestedInput
   swipesRecv?: Prisma.SwipeUncheckedUpdateManyWithoutSwipeeNestedInput
   participants?: Prisma.ParticipantUncheckedUpdateManyWithoutUserNestedInput
@@ -545,11 +676,13 @@ export type UserCreateWithoutSwipesSentInput = {
   id?: string
   email?: string | null
   phone: string
+  password?: string | null
   fcmToken?: string | null
   isBot?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   profile?: Prisma.ProfileCreateNestedOneWithoutUserInput
+  photos?: Prisma.UserPhotoCreateNestedManyWithoutUserInput
   swipesRecv?: Prisma.SwipeCreateNestedManyWithoutSwipeeInput
   participants?: Prisma.ParticipantCreateNestedManyWithoutUserInput
   messages?: Prisma.MessageCreateNestedManyWithoutSenderInput
@@ -559,11 +692,13 @@ export type UserUncheckedCreateWithoutSwipesSentInput = {
   id?: string
   email?: string | null
   phone: string
+  password?: string | null
   fcmToken?: string | null
   isBot?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   profile?: Prisma.ProfileUncheckedCreateNestedOneWithoutUserInput
+  photos?: Prisma.UserPhotoUncheckedCreateNestedManyWithoutUserInput
   swipesRecv?: Prisma.SwipeUncheckedCreateNestedManyWithoutSwipeeInput
   participants?: Prisma.ParticipantUncheckedCreateNestedManyWithoutUserInput
   messages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
@@ -578,11 +713,13 @@ export type UserCreateWithoutSwipesRecvInput = {
   id?: string
   email?: string | null
   phone: string
+  password?: string | null
   fcmToken?: string | null
   isBot?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   profile?: Prisma.ProfileCreateNestedOneWithoutUserInput
+  photos?: Prisma.UserPhotoCreateNestedManyWithoutUserInput
   swipesSent?: Prisma.SwipeCreateNestedManyWithoutSwiperInput
   participants?: Prisma.ParticipantCreateNestedManyWithoutUserInput
   messages?: Prisma.MessageCreateNestedManyWithoutSenderInput
@@ -592,11 +729,13 @@ export type UserUncheckedCreateWithoutSwipesRecvInput = {
   id?: string
   email?: string | null
   phone: string
+  password?: string | null
   fcmToken?: string | null
   isBot?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   profile?: Prisma.ProfileUncheckedCreateNestedOneWithoutUserInput
+  photos?: Prisma.UserPhotoUncheckedCreateNestedManyWithoutUserInput
   swipesSent?: Prisma.SwipeUncheckedCreateNestedManyWithoutSwiperInput
   participants?: Prisma.ParticipantUncheckedCreateNestedManyWithoutUserInput
   messages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
@@ -622,11 +761,13 @@ export type UserUpdateWithoutSwipesSentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBot?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneWithoutUserNestedInput
+  photos?: Prisma.UserPhotoUpdateManyWithoutUserNestedInput
   swipesRecv?: Prisma.SwipeUpdateManyWithoutSwipeeNestedInput
   participants?: Prisma.ParticipantUpdateManyWithoutUserNestedInput
   messages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
@@ -636,11 +777,13 @@ export type UserUncheckedUpdateWithoutSwipesSentInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBot?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUncheckedUpdateOneWithoutUserNestedInput
+  photos?: Prisma.UserPhotoUncheckedUpdateManyWithoutUserNestedInput
   swipesRecv?: Prisma.SwipeUncheckedUpdateManyWithoutSwipeeNestedInput
   participants?: Prisma.ParticipantUncheckedUpdateManyWithoutUserNestedInput
   messages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
@@ -661,11 +804,13 @@ export type UserUpdateWithoutSwipesRecvInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBot?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneWithoutUserNestedInput
+  photos?: Prisma.UserPhotoUpdateManyWithoutUserNestedInput
   swipesSent?: Prisma.SwipeUpdateManyWithoutSwiperNestedInput
   participants?: Prisma.ParticipantUpdateManyWithoutUserNestedInput
   messages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
@@ -675,11 +820,13 @@ export type UserUncheckedUpdateWithoutSwipesRecvInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBot?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUncheckedUpdateOneWithoutUserNestedInput
+  photos?: Prisma.UserPhotoUncheckedUpdateManyWithoutUserNestedInput
   swipesSent?: Prisma.SwipeUncheckedUpdateManyWithoutSwiperNestedInput
   participants?: Prisma.ParticipantUncheckedUpdateManyWithoutUserNestedInput
   messages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
@@ -689,11 +836,13 @@ export type UserCreateWithoutParticipantsInput = {
   id?: string
   email?: string | null
   phone: string
+  password?: string | null
   fcmToken?: string | null
   isBot?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   profile?: Prisma.ProfileCreateNestedOneWithoutUserInput
+  photos?: Prisma.UserPhotoCreateNestedManyWithoutUserInput
   swipesSent?: Prisma.SwipeCreateNestedManyWithoutSwiperInput
   swipesRecv?: Prisma.SwipeCreateNestedManyWithoutSwipeeInput
   messages?: Prisma.MessageCreateNestedManyWithoutSenderInput
@@ -703,11 +852,13 @@ export type UserUncheckedCreateWithoutParticipantsInput = {
   id?: string
   email?: string | null
   phone: string
+  password?: string | null
   fcmToken?: string | null
   isBot?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   profile?: Prisma.ProfileUncheckedCreateNestedOneWithoutUserInput
+  photos?: Prisma.UserPhotoUncheckedCreateNestedManyWithoutUserInput
   swipesSent?: Prisma.SwipeUncheckedCreateNestedManyWithoutSwiperInput
   swipesRecv?: Prisma.SwipeUncheckedCreateNestedManyWithoutSwipeeInput
   messages?: Prisma.MessageUncheckedCreateNestedManyWithoutSenderInput
@@ -733,11 +884,13 @@ export type UserUpdateWithoutParticipantsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBot?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneWithoutUserNestedInput
+  photos?: Prisma.UserPhotoUpdateManyWithoutUserNestedInput
   swipesSent?: Prisma.SwipeUpdateManyWithoutSwiperNestedInput
   swipesRecv?: Prisma.SwipeUpdateManyWithoutSwipeeNestedInput
   messages?: Prisma.MessageUpdateManyWithoutSenderNestedInput
@@ -747,11 +900,13 @@ export type UserUncheckedUpdateWithoutParticipantsInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBot?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUncheckedUpdateOneWithoutUserNestedInput
+  photos?: Prisma.UserPhotoUncheckedUpdateManyWithoutUserNestedInput
   swipesSent?: Prisma.SwipeUncheckedUpdateManyWithoutSwiperNestedInput
   swipesRecv?: Prisma.SwipeUncheckedUpdateManyWithoutSwipeeNestedInput
   messages?: Prisma.MessageUncheckedUpdateManyWithoutSenderNestedInput
@@ -761,11 +916,13 @@ export type UserCreateWithoutMessagesInput = {
   id?: string
   email?: string | null
   phone: string
+  password?: string | null
   fcmToken?: string | null
   isBot?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   profile?: Prisma.ProfileCreateNestedOneWithoutUserInput
+  photos?: Prisma.UserPhotoCreateNestedManyWithoutUserInput
   swipesSent?: Prisma.SwipeCreateNestedManyWithoutSwiperInput
   swipesRecv?: Prisma.SwipeCreateNestedManyWithoutSwipeeInput
   participants?: Prisma.ParticipantCreateNestedManyWithoutUserInput
@@ -775,11 +932,13 @@ export type UserUncheckedCreateWithoutMessagesInput = {
   id?: string
   email?: string | null
   phone: string
+  password?: string | null
   fcmToken?: string | null
   isBot?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
   profile?: Prisma.ProfileUncheckedCreateNestedOneWithoutUserInput
+  photos?: Prisma.UserPhotoUncheckedCreateNestedManyWithoutUserInput
   swipesSent?: Prisma.SwipeUncheckedCreateNestedManyWithoutSwiperInput
   swipesRecv?: Prisma.SwipeUncheckedCreateNestedManyWithoutSwipeeInput
   participants?: Prisma.ParticipantUncheckedCreateNestedManyWithoutUserInput
@@ -805,11 +964,13 @@ export type UserUpdateWithoutMessagesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBot?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUpdateOneWithoutUserNestedInput
+  photos?: Prisma.UserPhotoUpdateManyWithoutUserNestedInput
   swipesSent?: Prisma.SwipeUpdateManyWithoutSwiperNestedInput
   swipesRecv?: Prisma.SwipeUpdateManyWithoutSwipeeNestedInput
   participants?: Prisma.ParticipantUpdateManyWithoutUserNestedInput
@@ -819,11 +980,13 @@ export type UserUncheckedUpdateWithoutMessagesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   email?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   phone?: Prisma.StringFieldUpdateOperationsInput | string
+  password?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   fcmToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   isBot?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   profile?: Prisma.ProfileUncheckedUpdateOneWithoutUserNestedInput
+  photos?: Prisma.UserPhotoUncheckedUpdateManyWithoutUserNestedInput
   swipesSent?: Prisma.SwipeUncheckedUpdateManyWithoutSwiperNestedInput
   swipesRecv?: Prisma.SwipeUncheckedUpdateManyWithoutSwipeeNestedInput
   participants?: Prisma.ParticipantUncheckedUpdateManyWithoutUserNestedInput
@@ -835,6 +998,7 @@ export type UserUncheckedUpdateWithoutMessagesInput = {
  */
 
 export type UserCountOutputType = {
+  photos: number
   swipesSent: number
   swipesRecv: number
   participants: number
@@ -842,6 +1006,7 @@ export type UserCountOutputType = {
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  photos?: boolean | UserCountOutputTypeCountPhotosArgs
   swipesSent?: boolean | UserCountOutputTypeCountSwipesSentArgs
   swipesRecv?: boolean | UserCountOutputTypeCountSwipesRecvArgs
   participants?: boolean | UserCountOutputTypeCountParticipantsArgs
@@ -856,6 +1021,13 @@ export type UserCountOutputTypeDefaultArgs<ExtArgs extends runtime.Types.Extensi
    * Select specific fields to fetch from the UserCountOutputType
    */
   select?: Prisma.UserCountOutputTypeSelect<ExtArgs> | null
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountPhotosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.UserPhotoWhereInput
 }
 
 /**
@@ -891,11 +1063,13 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   id?: boolean
   email?: boolean
   phone?: boolean
+  password?: boolean
   fcmToken?: boolean
   isBot?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   profile?: boolean | Prisma.User$profileArgs<ExtArgs>
+  photos?: boolean | Prisma.User$photosArgs<ExtArgs>
   swipesSent?: boolean | Prisma.User$swipesSentArgs<ExtArgs>
   swipesRecv?: boolean | Prisma.User$swipesRecvArgs<ExtArgs>
   participants?: boolean | Prisma.User$participantsArgs<ExtArgs>
@@ -907,6 +1081,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   id?: boolean
   email?: boolean
   phone?: boolean
+  password?: boolean
   fcmToken?: boolean
   isBot?: boolean
   createdAt?: boolean
@@ -917,6 +1092,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   id?: boolean
   email?: boolean
   phone?: boolean
+  password?: boolean
   fcmToken?: boolean
   isBot?: boolean
   createdAt?: boolean
@@ -927,15 +1103,17 @@ export type UserSelectScalar = {
   id?: boolean
   email?: boolean
   phone?: boolean
+  password?: boolean
   fcmToken?: boolean
   isBot?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "phone" | "fcmToken" | "isBot" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "phone" | "password" | "fcmToken" | "isBot" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   profile?: boolean | Prisma.User$profileArgs<ExtArgs>
+  photos?: boolean | Prisma.User$photosArgs<ExtArgs>
   swipesSent?: boolean | Prisma.User$swipesSentArgs<ExtArgs>
   swipesRecv?: boolean | Prisma.User$swipesRecvArgs<ExtArgs>
   participants?: boolean | Prisma.User$participantsArgs<ExtArgs>
@@ -949,6 +1127,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   name: "User"
   objects: {
     profile: Prisma.$ProfilePayload<ExtArgs> | null
+    photos: Prisma.$UserPhotoPayload<ExtArgs>[]
     swipesSent: Prisma.$SwipePayload<ExtArgs>[]
     swipesRecv: Prisma.$SwipePayload<ExtArgs>[]
     participants: Prisma.$ParticipantPayload<ExtArgs>[]
@@ -958,6 +1137,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     id: string
     email: string | null
     phone: string
+    password: string | null
     fcmToken: string | null
     isBot: boolean
     createdAt: Date
@@ -1357,6 +1537,7 @@ readonly fields: UserFieldRefs;
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   profile<T extends Prisma.User$profileArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$profileArgs<ExtArgs>>): Prisma.Prisma__ProfileClient<runtime.Types.Result.GetResult<Prisma.$ProfilePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  photos<T extends Prisma.User$photosArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$photosArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPhotoPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   swipesSent<T extends Prisma.User$swipesSentArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$swipesSentArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SwipePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   swipesRecv<T extends Prisma.User$swipesRecvArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$swipesRecvArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$SwipePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   participants<T extends Prisma.User$participantsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$participantsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ParticipantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -1393,6 +1574,7 @@ export interface UserFieldRefs {
   readonly id: Prisma.FieldRef<"User", 'String'>
   readonly email: Prisma.FieldRef<"User", 'String'>
   readonly phone: Prisma.FieldRef<"User", 'String'>
+  readonly password: Prisma.FieldRef<"User", 'String'>
   readonly fcmToken: Prisma.FieldRef<"User", 'String'>
   readonly isBot: Prisma.FieldRef<"User", 'Boolean'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
@@ -1806,6 +1988,30 @@ export type User$profileArgs<ExtArgs extends runtime.Types.Extensions.InternalAr
    */
   include?: Prisma.ProfileInclude<ExtArgs> | null
   where?: Prisma.ProfileWhereInput
+}
+
+/**
+ * User.photos
+ */
+export type User$photosArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the UserPhoto
+   */
+  select?: Prisma.UserPhotoSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the UserPhoto
+   */
+  omit?: Prisma.UserPhotoOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserPhotoInclude<ExtArgs> | null
+  where?: Prisma.UserPhotoWhereInput
+  orderBy?: Prisma.UserPhotoOrderByWithRelationInput | Prisma.UserPhotoOrderByWithRelationInput[]
+  cursor?: Prisma.UserPhotoWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.UserPhotoScalarFieldEnum | Prisma.UserPhotoScalarFieldEnum[]
 }
 
 /**

@@ -10,7 +10,7 @@ datasource db {
 enum Gender {
   MALE
   FEMALE
-  NON_BINARY
+  BOTH
 }
 
 enum SwipeType {

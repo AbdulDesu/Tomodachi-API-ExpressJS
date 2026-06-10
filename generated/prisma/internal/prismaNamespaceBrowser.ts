@@ -53,6 +53,7 @@ export const AnyNull = runtime.AnyNull
 export const ModelName = {
   User: 'User',
   Profile: 'Profile',
+  UserPhoto: 'UserPhoto',
   Swipe: 'Swipe',
   Conversation: 'Conversation',
   Participant: 'Participant',
@@ -79,6 +80,7 @@ export const UserScalarFieldEnum = {
   id: 'id',
   email: 'email',
   phone: 'phone',
+  password: 'password',
   fcmToken: 'fcmToken',
   isBot: 'isBot',
   createdAt: 'createdAt',
@@ -92,6 +94,7 @@ export const ProfileScalarFieldEnum = {
   id: 'id',
   userId: 'userId',
   name: 'name',
+  photoUrl: 'photoUrl',
   bio: 'bio',
   birthdate: 'birthdate',
   gender: 'gender',
@@ -100,6 +103,18 @@ export const ProfileScalarFieldEnum = {
 } as const
 
 export type ProfileScalarFieldEnum = (typeof ProfileScalarFieldEnum)[keyof typeof ProfileScalarFieldEnum]
+
+
+export const UserPhotoScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  url: 'url',
+  order: 'order',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type UserPhotoScalarFieldEnum = (typeof UserPhotoScalarFieldEnum)[keyof typeof UserPhotoScalarFieldEnum]
 
 
 export const SwipeScalarFieldEnum = {

@@ -52,6 +52,11 @@ export type User = Prisma.UserModel
  */
 export type Profile = Prisma.ProfileModel
 /**
+ * Model UserPhoto
+ * 
+ */
+export type UserPhoto = Prisma.UserPhotoModel
+/**
  * Model Swipe
  * 
  */

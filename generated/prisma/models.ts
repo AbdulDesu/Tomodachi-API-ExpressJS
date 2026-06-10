@@ -10,6 +10,7 @@
  */
 export type * from './models/User.ts'
 export type * from './models/Profile.ts'
+export type * from './models/UserPhoto.ts'
 export type * from './models/Swipe.ts'
 export type * from './models/Conversation.ts'
 export type * from './models/Participant.ts'
