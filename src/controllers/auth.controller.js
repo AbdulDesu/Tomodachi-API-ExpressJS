@@ -223,6 +223,8 @@ export const identifyPhoneNumber = handleErrorAsync(async (req, res) => {
     }
 
     if(userData.password != null){
-        return APIResponseOK(res, true, 'Nomor Telepon ditemukan, dengan 2nd Auth')
+        return APIResponseOK(res, false, 'Nomor Telepon ditemukan, dengan 2nd Auth')
     }
+
+    return APIResponseOK(res,true, "Login Berhasil." );
 })

@@ -6,11 +6,11 @@ import { handleErrorAsync } from '../helper/api.js';
 
 const router = Router();
 
-router.post('/upsert',
+router.post('/upsert',verifyToken,
     uploadPhoto.single('photo'),
     upsertProfile
 );
 
-router.patch('/edit', verifyToken, uploadPhoto.single('photo'), handleErrorAsync(updateProfileFields));
+router.patch('/edit', verifyToken, uploadPhoto.single('photo'), updateProfileFields);
 
 export default router;

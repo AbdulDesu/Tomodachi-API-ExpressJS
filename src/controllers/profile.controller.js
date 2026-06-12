@@ -3,9 +3,17 @@ import {APIResponseOK, APIResponseBR, APIResponseErr, handleErrorAsync} from '..
 
 export const upsertProfile = handleErrorAsync(async (req, res) => {
     const userId = req.user.id;
-    let { name, birthdate, tags, latitude, longitude } = req.body;
+
+    let { name, birthdate, tags, latitude, longitude, pGender, gender } = req.body;
 
     if (!name) return APIResponseBR(res, false, 'Display Name wajib diisi.', null);
+
+    if (!gender || !['MALE', 'FEMALE', 'BOTH'].includes(gender)) {
+        return APIResponseBR(res, false, 'Identitas gender (gender) wajib diisi dan valid.', null);
+    }
+    if (!pGender || !['MALE', 'FEMALE', 'BOTH'].includes(pGender)) {
+        return APIResponseBR(res, false, 'Preferensi gender (pGender) wajib diisi dan valid.', null);
+    }
 
     try {
         if (typeof tags === 'string') tags = JSON.parse(tags);
@@ -28,27 +36,39 @@ export const upsertProfile = handleErrorAsync(async (req, res) => {
         photoUrl = req.file.filename;
     }
 
+    let validBirthdate = null;
+    if (birthdate) {
+        const parsedDate = new Date(birthdate);
+        if (!isNaN(parsedDate.getTime())) {
+            validBirthdate = parsedDate;
+        }
+    }
+
     try {
         const profile = await prisma.profile.upsert({
             where: { userId: userId },
             update: {
                 name,
                 ...(photoUrl && { photoUrl }),
-                birthdate: birthdate ? new Date(birthdate) : null,
-                tags: tags
+                birthdate: validBirthdate,
+                tags: tags,
+                gender: gender,
+                preferredGender: pGender
             },
             create: {
-                userId,
+                userId: userId,
                 name,
                 photoUrl: photoUrl || null,
-                birthdate: birthdate ? new Date(birthdate) : null,
-                tags: tags
+                birthdate: validBirthdate,
+                tags: tags,
+                gender: gender,
+                preferredGender: pGender
             }
         });
 
         await prisma.$executeRaw`
-            UPDATE "Profile" 
-            SET location = ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326) 
+            UPDATE "Profile"
+            SET location = ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)
             WHERE id = ${profile.id}
         `;
 

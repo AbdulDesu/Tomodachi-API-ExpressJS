@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
-import {} from '../config/config.js';
 import {APIResponseOK, APIResponseBR, APIResponseErr, APIResponseUnAuth} from '../helper/api.js';
+import config from '../config/config.js';
 
 export const verifyToken = async (req, res, next) => {
     const authHeader = req.headers['authorization'];
@@ -11,7 +11,10 @@ export const verifyToken = async (req, res, next) => {
     }
 
     try {
-        req.user = jwt.verify(token, config.jwtSecret);
+        const decoded = jwt.verify(token, config.jwtSecret);
+        req.user = {
+            id: decoded.userId
+        };
         return next();
 
     } catch (err) {
