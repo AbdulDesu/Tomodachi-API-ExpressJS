@@ -1,6 +1,7 @@
 import prisma from '../config/database.js';
 import {APIResponseBR, APIResponseErr, APIResponseOK, handleErrorAsync} from "../helper/api.js";
 import {spawnBotsJustInTime} from "../helper/spawner.js";
+import {messaging} from "../config/firebase.js";
 
 export const getNearbyProfiles = handleErrorAsync(async (req, res) => {
     const userId = req.user.id;
@@ -87,12 +88,22 @@ export const processSwipe = handleErrorAsync(async (req, res) => {
     try {
         const targetUser = await prisma.user.findUnique({
             where: { id: targetUserId },
-            select: { id: true, isBot: true }
+            select: {
+                id: true,
+                isBot: true,
+                fcmToken: true,
+                profile: { select: { name: true } }
+            }
         });
 
         if (!targetUser) {
             return APIResponseBR(res, false, 'Pengguna target tidak ditemukan.', null);
         }
+
+        const swiperProfile = await prisma.profile.findUnique({
+            where: { userId: swiperId },
+            select: { name: true }
+        });
 
         await prisma.swipe.upsert({
             where: {
@@ -113,18 +124,14 @@ export const processSwipe = handleErrorAsync(async (req, res) => {
         let conversationId = null;
 
         if (action === 'LIKE') {
-
             if (targetUser.isBot) {
                 isMatch = true;
-
                 await prisma.swipe.upsert({
                     where: { swiperId_swipeeId: { swiperId: targetUserId, swipeeId: swiperId } },
                     update: { type: 'LIKE' },
                     create: { swiperId: targetUserId, swipeeId: swiperId, type: 'LIKE' }
                 });
-            }
-
-            else {
+            } else {
                 const reciprocalSwipe = await prisma.swipe.findUnique({
                     where: {
                         swiperId_swipeeId: {
@@ -140,7 +147,6 @@ export const processSwipe = handleErrorAsync(async (req, res) => {
             }
 
             if (isMatch) {
-
                 const existingConv = await prisma.conversation.findFirst({
                     where: {
                         AND: [
@@ -153,7 +159,6 @@ export const processSwipe = handleErrorAsync(async (req, res) => {
                 if (existingConv) {
                     conversationId = existingConv.id;
                 } else {
-
                     const newConv = await prisma.conversation.create({
                         data: {
                             participants: {
@@ -165,6 +170,24 @@ export const processSwipe = handleErrorAsync(async (req, res) => {
                         }
                     });
                     conversationId = newConv.id;
+                }
+
+                if (!targetUser.isBot && targetUser.fcmToken && messaging) {
+                    const swiperName = swiperProfile?.name || 'Seseorang';
+                    messaging.send({
+                        token: targetUser.fcmToken,
+                        notification: {
+                            title: 'It\'s a Match! 🎉',
+                            body: `You and ${swiperName} likes each other. Start Messaging Now!`
+                        },
+                        data: {
+                            type: 'NEW_MATCH',
+                            conversationId: conversationId,
+                            matchedUserId: swiperId
+                        }
+                    }).catch(err => {
+                        console.error(`[FCM] Gagal mengirim notifikasi match ke target ${targetUserId}:`, err.message);
+                    });
                 }
             }
         }
