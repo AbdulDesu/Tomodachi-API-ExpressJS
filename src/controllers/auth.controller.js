@@ -219,7 +219,7 @@ export const identifyPhoneNumber = handleErrorAsync(async (req, res) => {
     const userData = await prisma.user.findUnique({ where: { phone: phone } });
 
     if (!userData) {
-        return APIResponseNF(res, true, "Nomor telepon belum terdaftar. Silakan lanjutkan dengan OTP untuk membuat akun baru.")
+        return APIResponseOK(res, true, "Nomor telepon belum terdaftar. Silakan lanjutkan dengan OTP untuk membuat akun baru.")
     }
 
     if(userData.password != null){

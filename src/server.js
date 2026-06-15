@@ -7,7 +7,6 @@ import {initializeSocket} from "./sockets/index.js";
 import authRoutes from "./routes/auth.route.js";
 import profileRoutes from "./routes/profile.route.js";
 import discoverRoutes from "./routes/discover.route.js";
-import swipeRoutes from "./routes/swipe.route.js";
 import chatRoutes from "./routes/chat.routes.js";
 
 const PORT = process.env.PORT || 705;
@@ -20,7 +19,6 @@ app.use(express.json());
 app.use('/auth', authRoutes);
 app.use('/profile', profileRoutes);
 app.use('/discover', discoverRoutes);
-app.use('/swipe', swipeRoutes)
 app.use('/chat', chatRoutes)
 
 function errorHandler(err, req, res, _) {

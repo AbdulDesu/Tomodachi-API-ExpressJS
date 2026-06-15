@@ -9,10 +9,10 @@ export const upsertProfile = handleErrorAsync(async (req, res) => {
     if (!name) return APIResponseBR(res, false, 'Display Name wajib diisi.', null);
 
     if (!gender || !['MALE', 'FEMALE', 'BOTH'].includes(gender)) {
-        return APIResponseBR(res, false, 'Identitas gender (gender) wajib diisi dan valid.', null);
+        return APIResponseBR(res, false, 'Identitas gender wajib diisi dan valid.', null);
     }
     if (!pGender || !['MALE', 'FEMALE', 'BOTH'].includes(pGender)) {
-        return APIResponseBR(res, false, 'Preferensi gender (pGender) wajib diisi dan valid.', null);
+        return APIResponseBR(res, false, 'Preferensi gender wajib diisi dan valid.', null);
     }
 
     try {
@@ -22,7 +22,7 @@ export const upsertProfile = handleErrorAsync(async (req, res) => {
     }
 
     if (!tags || !Array.isArray(tags) || tags.length < 3) {
-        return APIResponseBR(res, false, 'Pilih minimal 3 minat (interests).', null);
+        return APIResponseBR(res, false, 'Pilih minimal 3 minat.', null);
     }
 
     const lat = parseFloat(latitude);
@@ -45,26 +45,33 @@ export const upsertProfile = handleErrorAsync(async (req, res) => {
     }
 
     try {
-        const profile = await prisma.profile.upsert({
-            where: { userId: userId },
-            update: {
-                name,
-                ...(photoUrl && { photoUrl }),
-                birthdate: validBirthdate,
-                tags: tags,
-                gender: gender,
-                preferredGender: pGender
-            },
-            create: {
-                userId: userId,
-                name,
-                photoUrl: photoUrl || null,
-                birthdate: validBirthdate,
-                tags: tags,
-                gender: gender,
-                preferredGender: pGender
-            }
+        let profile = await prisma.profile.findFirst({
+            where: { userId: userId }
         });
+
+        const dataPayload = {
+            name,
+            ...(photoUrl && { photoUrl }),
+            birthdate: validBirthdate,
+            tags: tags,
+            gender: gender,
+            preferredGender: pGender
+        };
+
+        if (profile) {
+            profile = await prisma.profile.update({
+                where: { id: profile.id },
+                data: dataPayload
+            });
+        } else {
+            // 3. JIKA TIDAK ADA: Buat Profil Baru
+            profile = await prisma.profile.create({
+                data: {
+                    userId: userId,
+                    ...dataPayload
+                }
+            });
+        }
 
         await prisma.$executeRaw`
             UPDATE "Profile"
@@ -79,7 +86,7 @@ export const upsertProfile = handleErrorAsync(async (req, res) => {
 
     } catch (error) {
         console.error('Gagal menyimpan profil:', error);
-        return APIResponseErr(res, false, 'Terjadi kesalahan internal.', null);
+        return APIResponseErr(res, false, 'Terjadi kesalahan internal saat menyimpan profil.', null);
     }
 });
 

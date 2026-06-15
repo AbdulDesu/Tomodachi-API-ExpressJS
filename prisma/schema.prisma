@@ -56,7 +56,7 @@ model Profile {
   preferredGender Gender
   tags            String[]
 
-  location Unsupported("geometry(Point, 4326)")
+  location Unsupported("geometry(Point, 4326)")?
 
   @@index([location], name: "location_idx", type: Gist)
 }
