@@ -5,6 +5,6 @@ import { verifyToken } from '../middleware/auth.js';
 const router = Router();
 
 router.get('/nearby', verifyToken, getNearbyProfiles);
-router.post('/wipe', verifyToken, processSwipe);
+router.post('/swipe', verifyToken, processSwipe);
 
 export default router;

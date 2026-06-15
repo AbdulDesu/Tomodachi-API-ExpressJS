@@ -45,12 +45,12 @@ export const getNearbyProfiles = handleErrorAsync(async (req, res) => {
             AND u.id NOT IN (
                 SELECT "swipeeId" FROM "Swipe" WHERE "swiperId" = ${userId}
             )
-            
-            AND (
-                p.gender = CAST(${preferredGender} AS "Gender") 
-                OR CAST(${preferredGender} AS TEXT) = 'BOTH' 
-                OR ${preferredGender} IS NULL
-            )
+
+              AND (
+                p.gender = CAST(${preferredGender} AS "Gender")
+               OR CAST(${preferredGender} AS TEXT) = 'BOTH'
+               OR CAST(${preferredGender} AS TEXT) IS NULL
+                )
             
             AND ST_DWithin(
                 p.location::geography, 
