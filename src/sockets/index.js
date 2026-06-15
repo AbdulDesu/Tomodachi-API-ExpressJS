@@ -3,6 +3,8 @@ import redisClient from '../config/redis.js';
 import prisma from '../config/database.js';
 import { messaging } from '../config/firebase.js';
 
+import { generateBotReply } from '../helper/gemini.js';
+
 let io;
 
 export const initializeSocket = (httpServer) => {
@@ -42,13 +44,7 @@ export const initializeSocket = (httpServer) => {
                         content,
                         type: type || 'TEXT'
                     },
-                    include: {
-                        sender: {
-                            select: {
-                                profile: { select: { name: true } }
-                            }
-                        }
-                    }
+                    include: { sender: { select: { profile: { select: { name: true } } } } }
                 });
 
                 await prisma.conversation.update({
@@ -56,36 +52,72 @@ export const initializeSocket = (httpServer) => {
                     data: { updatedAt: new Date() }
                 });
 
+                const receiverUser = await prisma.user.findUnique({
+                    where: { id: receiverId },
+                    include: { profile: true }
+                });
+
+                if (!receiverUser) return;
+
                 const receiverSocketId = await redisClient.hGet('users:online', receiverId);
 
                 if (receiverSocketId) {
                     io.to(receiverSocketId).emit('receive_message', newMessage);
-                    console.log(`[Soket] Pesan terkirim secara real-time ke user ${receiverId}`);
-                } else {
-
-                    const receiverUser = await prisma.user.findUnique({
-                        where: { id: receiverId },
-                        select: { fcmToken: true }
-                    });
-
-                    if (receiverUser && receiverUser.fcmToken && messaging) {
-                        messaging.send({
-                            token: receiverUser.fcmToken,
-                            notification: {
-                                title: newMessage.sender.profile?.name || 'Pesan Baru',
-                                body: type === 'IMAGE' ? '🖼️ Mengirim sebuah gambar' : content
-                            },
-                            data: {
-                                type: 'NEW_CHAT_MESSAGE',
-                                conversationId: conversationId,
-                                senderId: socket.userId
-                            }
-                        }).catch(err => console.error('Gagal mengirim FCM Chat Notification:', err.message));
-                    }
-                    console.log(`[FCM] User ${receiverId} offline. Simulasi notifikasi push dipicu.`);
+                } else if (!receiverUser.isBot && receiverUser.fcmToken && messaging) {
+                    messaging.send({
+                        token: receiverUser.fcmToken,
+                        notification: {
+                            title: newMessage.sender.profile?.name || 'Pesan Baru',
+                            body: type === 'IMAGE' ? '🖼️ Mengirim sebuah gambar' : content
+                        },
+                        data: { type: 'NEW_CHAT_MESSAGE', conversationId, senderId: socket.userId }
+                    }).catch(err => console.error('Gagal FCM:', err.message));
                 }
 
                 socket.emit('message_delivered', { messageId: newMessage.id, conversationId });
+
+                if (receiverUser.isBot) {
+                    socket.emit('user_typing', {
+                        senderId: receiverId,
+                        conversationId,
+                        isTyping: true
+                    });
+
+                    await (async () => {
+                        try {
+                            await new Promise(resolve => setTimeout(resolve, 1500));
+
+                            const aiResponseText = await generateBotReply(receiverUser.profile, content);
+
+                            const botMessage = await prisma.message.create({
+                                data: {
+                                    conversationId,
+                                    senderId: receiverId,
+                                    content: aiResponseText,
+                                    type: 'TEXT'
+                                },
+                                include: {sender: {select: {profile: {select: {name: true}}}}}
+                            });
+
+                            await prisma.conversation.update({
+                                where: {id: conversationId},
+                                data: {updatedAt: new Date()}
+                            });
+
+                            socket.emit('user_typing', {
+                                senderId: receiverId,
+                                conversationId,
+                                isTyping: false
+                            });
+
+                            socket.emit('receive_message', botMessage);
+
+                        } catch (aiError) {
+                            console.error("Gagal memproses balasan Bot AI:", aiError);
+                            socket.emit('user_typing', {senderId: receiverId, conversationId, isTyping: false});
+                        }
+                    })();
+                }
 
             } catch (error) {
                 console.error('Gagal memproses pengiriman pesan via soket:', error);

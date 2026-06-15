@@ -1,5 +1,6 @@
 allowBuilds:
   '@firebase/util': true
+  '@google/genai': true
   '@prisma/engines': true
   bcrypt: true
   prisma: true
