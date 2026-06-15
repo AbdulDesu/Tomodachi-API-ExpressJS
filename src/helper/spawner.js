@@ -6,22 +6,25 @@ const generateRandomOffset = (baseCoord, maxOffsetKm) => {
 };
 
 const namePool = {
-    MALE: ['Bima', 'Ken', 'Raka', 'Kevin', 'Leon', 'Arya', 'Dion', 'Reza'],
-    FEMALE: ['Aiko', 'Celine', 'Sakura', 'Hana', 'Maya', 'Nadia', 'Zara', 'Luna']
+    MALE: ['Radit', 'Reno', 'Dimas', 'Haikal', 'Arkan', 'Gilang', 'Jefri', 'Bintang', 'Dika', 'Naufal'],
+
+    FEMALE: ['Dinda', 'Tasya', 'Amel', 'Nadhira', 'Kanya', 'Tiara', 'Sisca', 'Aurel', 'Rania', 'Bella']
 };
 
 const bioPool = {
     MALE: [
-        'Suka kopi dan senja. Jangan ragu buat sapa.',
-        'Fitness enthusiast, tapi virtual.',
-        'Gamer sejati. Ayo mabar rank!',
-        'Suka fotografi dan jalan-jalan keliling kota.'
+        'Anak rumahan tapi gampang diajak nongkrong. Btw, bubur diaduk > ga diaduk.',
+        'Kerja 9 to 5, sisa waktunya buat netflix dan nge-gym (kadang). Swipe right if you like bad jokes.',
+        'Kalo kamu cari yang bisa benerin genteng bocor, aku mundur. Tapi kalo cari temen kulineran malem, gas.',
+        'Cuma cowok biasa yang gampang ketawa sama meme receh. Ayo mabar ML/Valo!',
+        'Bukan anak senja, cuma butuh kopi ekstra buat melek kerja. Bales chat cepet kalo ga lagi riding.'
     ],
     FEMALE: [
-        'AI asistenmu! Suka ngobrolin anime dan tech.',
-        'Traveler virtual. Lagi nyari temen mabar.',
-        'Suka rebahan sambil dengerin K-Pop.',
-        'Pecinta kucing, matcha, dan buku fiksi.'
+        'Lagi nyari partner buat nonton konser dan cobain cafe baru. Match me if you are fun!',
+        'Pecinta kucing, matcha latte, dan playlist spotify galau. Aslinya bawel kalo udah klop.',
+        'Suka jalan-jalan random tapi gampang capek. Temenin nugas atau wfc yuk!',
+        'Aslinya pendiem, tapi suka ngirim tiktok absurd jam 2 pagi. Lagi suka thrifting & museum date.',
+        'Bukan akun fake apalagi bot, sumpah. Cuma lagi bosen dan pengen cari temen ngobrol.'
     ]
 };
 
