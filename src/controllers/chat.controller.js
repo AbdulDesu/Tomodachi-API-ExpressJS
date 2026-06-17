@@ -53,7 +53,7 @@ export const getChatList = handleErrorAsync(async (req, res) => {
 
     let onlineSocketIds = [];
     if (otherUserIds.length > 0) {
-        onlineSocketIds = await redisClient.hMGet('users:online', otherUserIds);
+        onlineSocketIds = await redisClient.hmGet('users:online', otherUserIds);
     }
 
     const formattedChatList = conversations.map((conv, index) => {

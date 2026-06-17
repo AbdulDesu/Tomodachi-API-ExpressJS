@@ -27,15 +27,12 @@ export const initializeSocket = (httpServer) => {
     io.on('connection', async (socket) => {
         console.log(`[Soket] User aktif: ${socket.userId} (${socket.id})`);
 
-        await redisClient.hSet('users:online', socket.userId, socket.id);
+        await redisClient.hSet('users:online', socket.userId, socket.id );
 
         socket.on('send_message', async (data) => {
-            const { conversationId, receiverId, content, type } = data;
+            const { conversationId, receiverId, content, type, localId } = data;
 
-            if (!conversationId || !receiverId || !content) {
-                return;
-            }
-
+            if (!conversationId || !receiverId || !content) return;
             try {
                 const newMessage = await prisma.message.create({
                     data: {
@@ -74,9 +71,27 @@ export const initializeSocket = (httpServer) => {
                     }).catch(err => console.error('Gagal FCM:', err.message));
                 }
 
-                socket.emit('message_delivered', { messageId: newMessage.id, conversationId });
+                socket.emit('message_delivered', {
+                    messageId: newMessage.id,
+                    conversationId,
+                    localId: localId
+                });
 
                 if (receiverUser.isBot) {
+                    await prisma.message.updateMany({
+                        where: {
+                            conversationId,
+                            senderId: socket.userId,
+                            isRead: false
+                        },
+                        data: { isRead: true }
+                    });
+
+                    socket.emit('messages_marked_as_read', {
+                        conversationId,
+                        readerId: receiverId
+                    });
+
                     socket.emit('user_typing', {
                         senderId: receiverId,
                         conversationId,
@@ -87,7 +102,19 @@ export const initializeSocket = (httpServer) => {
                         try {
                             await new Promise(resolve => setTimeout(resolve, 1500));
 
-                            const aiResponseText = await generateBotReply(receiverUser.profile, content);
+
+                            const history = await prisma.message.findMany({
+                                where: { conversationId },
+                                orderBy: { createdAt: 'desc' },
+                                take: 6,
+                                select: { content: true, senderId: true }
+                            });
+                            history.reverse();
+
+                            const aiResponseText = await generateBotReply(
+                                { ...receiverUser.profile, id: receiverId },
+                                history
+                            );
 
                             const botMessage = await prisma.message.create({
                                 data: {
@@ -97,11 +124,6 @@ export const initializeSocket = (httpServer) => {
                                     type: 'TEXT'
                                 },
                                 include: {sender: {select: {profile: {select: {name: true}}}}}
-                            });
-
-                            await prisma.conversation.update({
-                                where: {id: conversationId},
-                                data: {updatedAt: new Date()}
                             });
 
                             socket.emit('user_typing', {
