@@ -11,10 +11,13 @@ import chatRoutes from "./routes/chat.routes.js";
 
 const PORT = process.env.PORT || 705;
 const app = express();
+import config from './config/config.js';
 
 const httpServer = http.createServer(app);
 
 app.use(express.json());
+
+app.use('/uploads', express.static(config.folderUpload))
 
 app.use('/auth', authRoutes);
 app.use('/profile', profileRoutes);
