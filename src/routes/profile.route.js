@@ -1,16 +1,16 @@
 import { Router } from 'express';
-import {updateProfileFields, upsertProfile} from '../controllers/profile.controller.js';
+import {getProfileById, updateProfileFields, upsertProfile, uploadHighlightPhotos} from '../controllers/profile.controller.js';
 import { verifyToken } from '../middleware/auth.js';
-import { uploadPhoto } from '../middleware/upload.js';
-import { handleErrorAsync } from '../helper/api.js';
+import { uploadPhoto, compressImage } from '../middleware/upload.js';
 
 const router = Router();
 
-router.post('/upsert',verifyToken,
-    uploadPhoto.single('photo'),
-    upsertProfile
-);
+router.get("/", verifyToken, getProfileById)
 
-router.patch('/edit', verifyToken, uploadPhoto.single('photo'), updateProfileFields);
+router.post('/upsert', verifyToken, uploadPhoto.single('photo'), compressImage, upsertProfile);
+
+router.patch('/edit', verifyToken, uploadPhoto.single('photo'), compressImage, updateProfileFields);
+
+router.post('/highlights', verifyToken, uploadPhoto.array('highlights', 6), compressImage, uploadHighlightPhotos);
 
 export default router;

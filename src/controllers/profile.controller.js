@@ -1,5 +1,39 @@
 import prisma from '../config/database.js';
-import {APIResponseOK, APIResponseBR, APIResponseErr, handleErrorAsync} from '../helper/api.js';
+import {APIResponseOK, APIResponseBR, APIResponseErr, handleErrorAsync, APIResponseNF} from '../helper/api.js';
+
+export const getProfileById = handleErrorAsync(async (req, res) => {
+    const userId = req.user.id;
+
+    const userData = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+            id: true,
+            isBot: true,
+            profile: true,
+            photos: {
+                orderBy: { order: 'asc' },
+                select: {
+                    id: true,
+                    url: true,
+                    order: true
+                }
+            }
+        }
+    });
+
+    if (!userData || !userData.profile) {
+        return APIResponseNF(res, false, 'Profil tidak ditemukan.');
+    }
+
+    const formattedProfile = {
+        userId: userData.id,
+        isBot: userData.isBot,
+        ...userData.profile,
+        highlightPhotos: userData.photos
+    };
+
+    return APIResponseOK(res, true, "Berhasil mendapatkan profil lengkap", formattedProfile);
+});
 
 export const upsertProfile = handleErrorAsync(async (req, res) => {
     const userId = req.user.id;
@@ -64,7 +98,6 @@ export const upsertProfile = handleErrorAsync(async (req, res) => {
                 data: dataPayload
             });
         } else {
-            // 3. JIKA TIDAK ADA: Buat Profil Baru
             profile = await prisma.profile.create({
                 data: {
                     userId: userId,
@@ -96,6 +129,7 @@ export const updateProfileFields = handleErrorAsync(async (req, res) => {
 
     try {
         const updateData = {};
+
         if (name !== undefined) updateData.name = name;
         if (bio !== undefined) updateData.bio = bio;
         if (gender !== undefined) updateData.gender = gender;
@@ -109,6 +143,10 @@ export const updateProfileFields = handleErrorAsync(async (req, res) => {
             }
         }
 
+        if (req.file) {
+            updateData.photoUrl = req.file.filename;
+        }
+
         const updatedProfile = await prisma.profile.update({
             where: { userId: userId },
             data: updateData
@@ -120,8 +158,8 @@ export const updateProfileFields = handleErrorAsync(async (req, res) => {
 
             if (!isNaN(lat) && !isNaN(lng)) {
                 await prisma.$executeRaw`
-                    UPDATE "Profile" 
-                    SET location = ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326) 
+                    UPDATE "Profile"
+                    SET location = ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)
                     WHERE "userId" = ${userId}
                 `;
             }
@@ -132,5 +170,58 @@ export const updateProfileFields = handleErrorAsync(async (req, res) => {
     } catch (error) {
         console.error('Gagal memperbarui data profil secara parsial:', error);
         return APIResponseErr(res, false, 'Gagal memproses pembaruan data profil.', null);
+    }
+});
+
+export const uploadHighlightPhotos = handleErrorAsync(async (req, res) => {
+    const userId = req.user.id;
+    const files = req.files;
+
+    if (!files || files.length === 0) {
+        return APIResponseBR(res, false, 'Tidak ada foto yang diunggah.', null);
+    }
+
+    try {
+        const currentPhotosCount = await prisma.userPhoto.count({
+            where: { userId: userId }
+        });
+
+        const maxPhotosAllowed = 6;
+        if (currentPhotosCount + files.length > maxPhotosAllowed) {
+            return APIResponseBR(res, false, `Kuota penuh. Kamu hanya bisa menambah ${maxPhotosAllowed - currentPhotosCount} foto lagi.`, null);
+        }
+
+        const lastPhoto = await prisma.userPhoto.aggregate({
+            where: { userId: userId },
+            _max: { order: true }
+        });
+
+        let nextOrder = lastPhoto._max.order !== null ? lastPhoto._max.order + 1 : 0;
+
+        const photosData = files.map((file) => {
+            const data = {
+                userId: userId,
+                url: file.filename,
+                order: nextOrder
+            };
+            nextOrder++;
+            return data;
+        });
+
+        await prisma.userPhoto.createMany({
+            data: photosData
+        });
+
+        const updatedHighlights = await prisma.userPhoto.findMany({
+            where: { userId: userId },
+            orderBy: { order: 'asc' },
+            select: { id: true, url: true, order: true }
+        });
+
+        return APIResponseOK(res, true, 'Highlight foto berhasil ditambahkan.', updatedHighlights);
+
+    } catch (error) {
+        console.error('Gagal mengunggah foto highlight:', error);
+        return APIResponseErr(res, false, 'Terjadi kesalahan sistem saat menyimpan foto.', null);
     }
 });

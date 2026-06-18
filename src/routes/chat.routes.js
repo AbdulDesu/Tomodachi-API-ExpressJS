@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import {getChatHistory, getChatList, uploadMediaMessage} from '../controllers/chat.controller.js';
 import { verifyToken } from '../middleware/auth.js';
-import {handleErrorAsync} from "../helper/api.js";
 import {uploadPhoto} from "../middleware/upload.js";
 
 const router = Router();
