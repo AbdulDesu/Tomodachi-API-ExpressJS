@@ -77,12 +77,14 @@ export const initializeSocket = (httpServer) => {
                 } else if (!receiverUser.isBot && receiverUser.fcmToken && messaging) {
                     messaging.send({
                         token: receiverUser.fcmToken,
-                        data: {
-                            type: 'NEW_CHAT_MESSAGE',
-                            conversationId,
-                            senderId: socket.userId,
+                        notification: {
                             title: newMessage.sender.profile?.name || 'Pesan Baru',
                             body: type === 'IMAGE' ? '🖼️ Mengirim sebuah gambar' : content
+                        },
+                        data: {
+                            type: 'NEW_CHAT_MESSAGE',
+                            conversationId: String(conversationId),
+                            senderId: String(socket.userId)
                         }
                     }).catch(err => console.error('Gagal FCM:', err.message));
                 }

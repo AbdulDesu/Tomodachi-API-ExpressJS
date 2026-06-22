@@ -176,13 +176,16 @@ export const uploadMediaMessage = async (req, res) => {
         } else if (!receiverUser.isBot && receiverUser.fcmToken && messaging) {
             messaging.send({
                 token: receiverUser.fcmToken,
-                data: {
-                    type: 'NEW_CHAT_MESSAGE',
-                    conversationId,
-                    senderId,
+                notification: {
                     title: newMessage.sender.profile?.name || 'Pesan Baru',
                     body: '🖼️ Mengirim sebuah gambar'
-                }   }).catch(err => console.error('Gagal FCM:', err.message));
+                },
+                data: {
+                    type: 'NEW_CHAT_MESSAGE',
+                    conversationId: String(conversationId), // Pastikan diubah jadi string
+                    senderId: String(socket.userId)
+                }
+            }).catch(err => console.error('Gagal FCM:', err.message));
         }
 
         if (receiverUser.isBot) {
