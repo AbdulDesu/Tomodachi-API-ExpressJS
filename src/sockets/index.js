@@ -93,7 +93,11 @@ export const initializeSocket = (httpServer) => {
                             conversationId: String(conversationId),
                             senderId: String(socket.userId)
                         }
-                    }).catch(err => console.error('Gagal FCM:', err.message));
+                    }).then((response) => {
+                        console.log('[DEBUG FCM] Sukses dikirim ke Google Server! Response:', response);
+                    }).catch(err => {
+                        console.error('[DEBUG FCM] Gagal dikirim ke Google:', err.message);
+                    });
                 }
 
                 socket.emit('message_delivered', {
