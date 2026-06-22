@@ -1,0 +1,73 @@
+name: Deploy To Canis-Major
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get GitHub Actions Runner IP
+        id: ip
+        run: echo "ipv4=$(curl -s https://api.ipify.org)" >> $GITHUB_OUTPUT
+
+      - name: Whitelist IP on DigitalOcean Firewall
+        run: |
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.DO_API_TOKEN }}" \
+            -d '{"inbound_rules": [{"protocol": "tcp", "ports": "${{ secrets.SERVER_PORT }}", "sources": {"addresses": ["${{ steps.ip.outputs.ipv4 }}/32"]}}]}' \
+            "https://api.digitalocean.com/v2/firewalls/${{ secrets.DO_FIREWALL_ID }}/rules"
+
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          script: |
+            export NVM_DIR="$HOME/.nvm"
+            [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
+            export PNPM_HOME="$HOME/.local/share/pnpm"
+            export PATH="$PNPM_HOME:$PATH"
+            cd /opt/Tomodachi-API
+            
+            git pull origin main
+            
+            pnpm install --prod --frozen-lockfile
+            
+            pnpm dlx prisma generate
+            pnpm dlx prisma migrate deploy
+            
+            pm2 restart ecosystem.config.js
+
+      - name: Remove IP from DigitalOcean Firewall
+        if: always()
+        run: |
+          curl -X DELETE \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.DO_API_TOKEN }}" \
+            -d '{"inbound_rules": [{"protocol": "tcp", "ports": "${{ secrets.SERVER_PORT }}", "sources": {"addresses": ["${{ steps.ip.outputs.ipv4 }}/32"]}}]}' \
+            "https://api.digitalocean.com/v2/firewalls/${{ secrets.DO_FIREWALL_ID }}/rules"
+
+      - name: Notify Arisu
+        if: always()
+        env:
+          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
+          JOB_STATUS: ${{ job.status }}
+          REPO_NAME: ${{ github.repository }}
+        run: |
+          JSON_PAYLOAD=$(jq -n \
+            --arg msg "$COMMIT_MESSAGE" \
+            --arg status "$JOB_STATUS" \
+            --arg repo "$REPO_NAME" \
+            '{commit_message: $msg, status: $status, repository: $repo}')
+          
+          curl -X POST \
+            -H "Content-Type: application/json" \
+            -H "Authorization: Bearer ${{ secrets.BOT_AUTH_TOKEN }}" \
+            -d "$JSON_PAYLOAD" \
+            "${{ secrets.BOT_WEBHOOK_URL }}"
