@@ -1,7 +1,7 @@
 module.exports = {
     apps : [{
         name   : "tomodachi",
-        script : "server.js",
+        script : "/src/server.js",
         node_args: "--env-file=.env"
     }]
 }
