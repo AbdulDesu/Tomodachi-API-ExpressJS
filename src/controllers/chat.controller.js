@@ -36,6 +36,16 @@ export const getChatList = handleErrorAsync(async (req, res) => {
                     createdAt: 'desc'
                 },
                 take: 1
+            },
+            _count: {
+                select: {
+                    messages: {
+                        where: {
+                            isRead: false,
+                            senderId: { not: currentUserId }
+                        }
+                    }
+                }
             }
         },
         orderBy: {
@@ -61,11 +71,14 @@ export const getChatList = handleErrorAsync(async (req, res) => {
         const otherParticipant = conv.participants.find(p => p.userId !== currentUserId);
         const lastMessageObj = conv.messages[0] || null;
 
+        const unreadCount = conv._count?.messages || 0;
+
         const isOnline = !!onlineSocketIds[index];
 
         return {
             conversationId: conv.id,
             updatedAt: conv.updatedAt,
+            unreadCount: unreadCount,
             partner: otherParticipant ? {
                 userId: otherParticipant.user.id,
                 name: otherParticipant.user.profile?.name || 'Pengguna Tomodachi',
@@ -85,7 +98,6 @@ export const getChatList = handleErrorAsync(async (req, res) => {
 
     return APIResponseOK(res, true, 'Berhasil memuat daftar obrolan.', formattedChatList);
 });
-
 export const getChatHistory = async (req, res) => {
     const { conversationId } = req.params;
 

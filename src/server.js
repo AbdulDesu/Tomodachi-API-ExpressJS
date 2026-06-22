@@ -49,7 +49,6 @@ app.use(clientErrorHandler);
 app.use(logErrors);
 
 
-
 const startServer = async () => {
     await connectRedis();
 

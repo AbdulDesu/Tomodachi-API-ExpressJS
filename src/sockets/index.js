@@ -13,7 +13,7 @@ export const initializeSocket = (httpServer) => {
             origin: process.env.CLIENT_URL || '*',
             methods: ['GET', 'POST']
         }
-    }); //
+    });
 
     io.use((socket, next) => {
         const userId = socket.handshake.auth.userId;
