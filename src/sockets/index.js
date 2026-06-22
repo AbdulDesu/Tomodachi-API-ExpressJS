@@ -75,31 +75,29 @@ export const initializeSocket = (httpServer) => {
                 if (receiverSocketId) {
                     io.to(receiverSocketId).emit('receive_message', newMessage);
                 } else {
-                    if (!receiverUser.isBot){
-                        console.log(`[DEBUG FCM] Cek Target - Nama: ${receiverUser.profile?.name}, isBot: ${receiverUser.isBot}, Token: ${receiverUser.fcmToken}`);
+                    console.log(`[DEBUG FCM] Cek Target - Nama: ${receiverUser.profile?.name}, isBot: ${receiverUser.isBot}, Token: ${receiverUser.fcmToken}`);
 
-                        messaging.send({
-                            token: receiverUser.fcmToken,
+                    messaging.send({
+                        token: receiverUser.fcmToken,
+                        notification: {
+                            title: newMessage.sender.profile?.name || 'Pesan Baru',
+                            body: content
+                        },
+                        android: {
                             notification: {
-                                title: newMessage.sender.profile?.name || 'Pesan Baru',
-                                body: content
-                            },
-                            android: {
-                                notification: {
-                                    channelId: 'tomodachi_messages_channel'
-                                }
-                            },
-                            data: {
-                                type: 'NEW_CHAT_MESSAGE',
-                                conversationId: String(conversationId),
-                                senderId: String(socket.userId)
+                                channelId: 'tomodachi_messages_channel'
                             }
-                        }).then((response) => {
-                            console.log('[DEBUG FCM] Sukses dikirim ke Google Server! Response:', response);
-                        }).catch(err => {
-                            console.error('[DEBUG FCM] Gagal dikirim ke Google:', err.message);
-                        });
-                    }
+                        },
+                        data: {
+                            type: 'NEW_CHAT_MESSAGE',
+                            conversationId: String(conversationId),
+                            senderId: String(socket.userId)
+                        }
+                    }).then((response) => {
+                        console.log('[DEBUG FCM] Sukses dikirim ke Google Server! Response:', response);
+                    }).catch(err => {
+                        console.error('[DEBUG FCM] Gagal dikirim ke Google:', err.message);
+                    });
 
                 }
 
