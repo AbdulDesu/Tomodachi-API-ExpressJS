@@ -79,7 +79,7 @@ export const initializeSocket = (httpServer) => {
                         token: receiverUser.fcmToken,
                         notification: {
                             title: newMessage.sender.profile?.name || 'Pesan Baru',
-                            body: type === 'IMAGE' ? '🖼️ Mengirim sebuah gambar' : content
+                            body: content
                         },
                         data: {
                             type: 'NEW_CHAT_MESSAGE',
