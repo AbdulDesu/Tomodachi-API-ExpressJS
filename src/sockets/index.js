@@ -29,6 +29,20 @@ export const initializeSocket = (httpServer) => {
 
         await redisClient.hSet('users:online', socket.userId, socket.id );
 
+        socket.broadcast.emit('user_status_changed', { userId: socket.userId, isOnline: true });
+
+        socket.on('check_online_status', async (data) => {
+            const { targetId } = data;
+            if (!targetId) return;
+
+            const targetSocketId = await redisClient.hGet('users:online', targetId);
+
+            socket.emit('online_status', {
+                userId: targetId,
+                isOnline: !!targetSocketId
+            });
+        });
+
         socket.on('send_message', async (data) => {
             const { conversationId, receiverId, content, type, localId } = data;
 
@@ -189,6 +203,7 @@ export const initializeSocket = (httpServer) => {
         socket.on('disconnect', async () => {
             console.log(`[Soket] User terputus: ${socket.userId}`);
             await redisClient.hDel('users:online', socket.userId);
+            socket.broadcast.emit('user_status_changed', { userId: socket.userId, isOnline: false });
         });
     });
 
