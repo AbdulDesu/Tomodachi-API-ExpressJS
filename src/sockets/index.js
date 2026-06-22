@@ -75,11 +75,18 @@ export const initializeSocket = (httpServer) => {
                 if (receiverSocketId) {
                     io.to(receiverSocketId).emit('receive_message', newMessage);
                 } else if (!receiverUser.isBot && receiverUser.fcmToken && messaging) {
+                    console.log(`[DEBUG FCM] Cek Target - Nama: ${receiverUser.profile?.name}, isBot: ${receiverUser.isBot}, Token: ${receiverUser.fcmToken}`);
+
                     messaging.send({
                         token: receiverUser.fcmToken,
                         notification: {
                             title: newMessage.sender.profile?.name || 'Pesan Baru',
                             body: content
+                        },
+                        android: {
+                            notification: {
+                                channelId: 'tomodachi_messages_channel'
+                            }
                         },
                         data: {
                             type: 'NEW_CHAT_MESSAGE',
