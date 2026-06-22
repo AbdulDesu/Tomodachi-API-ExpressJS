@@ -219,7 +219,6 @@ export const uploadHighlightPhotos = handleErrorAsync(async (req, res) => {
         });
 
         return APIResponseOK(res, true, 'Highlight foto berhasil ditambahkan.', updatedHighlights);
-
     } catch (error) {
         console.error('Gagal mengunggah foto highlight:', error);
         return APIResponseErr(res, false, 'Terjadi kesalahan sistem saat menyimpan foto.', null);

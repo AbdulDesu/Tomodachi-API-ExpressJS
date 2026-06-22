@@ -107,7 +107,7 @@ export const initializeSocket = (httpServer) => {
                                 where: { conversationId },
                                 orderBy: { createdAt: 'desc' },
                                 take: 6,
-                                select: { content: true, senderId: true }
+                                select: { content: true, senderId: true, type: true }
                             });
                             history.reverse();
 
