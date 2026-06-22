@@ -1,7 +1,7 @@
 export default {
     apps : [{
-        name   : "core",
-        script : "index.js",
+        name   : "tomodachi",
+        script : "server.js",
         node_args: "--env-file=.env"
     }]
 }
