@@ -42,7 +42,7 @@ jobs:
             pnpm dlx prisma generate
             pnpm dlx prisma migrate deploy
             
-            pm2 restart ecosystem.config.js
+            pm2 restart ecosystem.config.cjs
 
       - name: Remove IP from DigitalOcean Firewall
         if: always()
