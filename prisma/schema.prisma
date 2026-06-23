@@ -114,6 +114,7 @@ model Message {
   senderId       String
   content        String
   caption        String?
+  waveform       String?
   type           MessageType @default(TEXT)
   isRead         Boolean     @default(false)
   createdAt      DateTime    @default(now())
