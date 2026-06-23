@@ -169,7 +169,7 @@ export const uploadMediaMessage = async (req, res) => {
         if (!receiverUser) return APIResponseBR(res, false, 'Penerima tidak valid.', null);
 
         const newMessage = await prisma.message.create({
-            data: { conversationId, senderId, content: fileUrl, type: 'IMAGE', caption: mediaType === 'AUDIO' ? null : (caption || null)},
+            data: { conversationId, senderId, content: fileUrl, type: mediaType, caption: mediaType === 'AUDIO' ? null : (caption || null)},
             include: { sender: { select: { profile: { select: { name: true } } } } }
         });
 
