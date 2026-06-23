@@ -91,7 +91,9 @@ export const getChatList = handleErrorAsync(async (req, res) => {
                 type: lastMessageObj.type,
                 senderId: lastMessageObj.senderId,
                 createdAt: lastMessageObj.createdAt,
-                isRead: lastMessageObj.isRead
+                isRead: lastMessageObj.isRead,
+                caption: lastMessageObj.caption,
+                durationMs: lastMessageObj.durationMs
             } : null
         };
     });
