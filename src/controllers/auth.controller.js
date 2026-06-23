@@ -97,8 +97,8 @@ export const resendOtp = handleErrorAsync(async (req, res) => {
 export const verifyOtp = handleErrorAsync(async (req, res) => {
     const { phone, otp, fcmToken } = req.body;
 
-    if (!phone || !otp) {
-        return APIResponseBR(res, false, 'Nomor telepon dan OTP wajib diisi.');
+    if (!phone || !otp || !fcmToken) {
+        return APIResponseBR(res, false, 'FCMToken, Nomor telepon, dan OTP wajib diisi.');
     }
 
     const redisKey = `otp:${phone}`;
