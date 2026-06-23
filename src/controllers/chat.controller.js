@@ -1,7 +1,7 @@
 import prisma from '../config/database.js';
 import redisClient from '../config/redis.js';
 import {APIResponseOK, APIResponseErr, APIResponseBR, handleErrorAsync} from '../helper/api.js';
-import { messaging } from '../config/firebase.js';
+import {messaging} from '../config/firebase.js';
 import {getIO} from "../sockets/index.js";
 import {generateBotReply} from "../helper/gemini.js";
 
@@ -42,7 +42,7 @@ export const getChatList = handleErrorAsync(async (req, res) => {
                     messages: {
                         where: {
                             isRead: false,
-                            senderId: { not: currentUserId }
+                            senderId: {not: currentUserId}
                         }
                     }
                 }
@@ -99,7 +99,7 @@ export const getChatList = handleErrorAsync(async (req, res) => {
     return APIResponseOK(res, true, 'Berhasil memuat daftar obrolan.', formattedChatList);
 });
 export const getChatHistory = async (req, res) => {
-    const { conversationId } = req.params;
+    const {conversationId} = req.params;
 
     const cursor = req.query.cursor;
     const limit = parseInt(req.query.limit) || 20;
@@ -107,7 +107,7 @@ export const getChatHistory = async (req, res) => {
     const conversation = await prisma.conversation.findFirst({
         where: {
             id: conversationId,
-            participants: { some: { userId: req.user.id } }
+            participants: {some: {userId: req.user.id}}
         }
     });
 
@@ -116,15 +116,15 @@ export const getChatHistory = async (req, res) => {
     }
 
     const messages = await prisma.message.findMany({
-        where: { conversationId: conversationId },
+        where: {conversationId: conversationId},
         take: limit,
         skip: cursor ? 1 : 0,
-        cursor: cursor ? { id: cursor } : undefined,
+        cursor: cursor ? {id: cursor} : undefined,
         orderBy: {
             createdAt: 'desc'
         },
         include: {
-            sender: { select: { id: true, profile: { select: { name: true } } } }
+            sender: {select: {id: true, profile: {select: {name: true}}}}
         }
     });
 
@@ -138,7 +138,7 @@ export const getChatHistory = async (req, res) => {
 
 export const uploadMediaMessage = async (req, res) => {
     const senderId = req.user.id;
-    const { conversationId, receiverId, caption, waveform } = req.body;
+    const {conversationId, receiverId, caption, waveform, duration} = req.body;
 
     if (!conversationId || !receiverId) {
         return APIResponseBR(res, false, 'conversationId dan receiverId wajib diisi.', null);
@@ -151,7 +151,7 @@ export const uploadMediaMessage = async (req, res) => {
     const fileUrl = req.file.filename;
 
     let mediaType = 'IMAGE';
-    let notifBody="📸 Sent an image";
+    let notifBody = "📸 Sent an image";
 
     if (req.file.mimetype.startsWith('audio/')) {
         mediaType = 'AUDIO';
@@ -162,25 +162,32 @@ export const uploadMediaMessage = async (req, res) => {
 
     try {
         const receiverUser = await prisma.user.findUnique({
-            where: { id: receiverId },
-            include: { profile: true }
+            where: {id: receiverId},
+            include: {profile: true}
         });
 
         if (!receiverUser) return APIResponseBR(res, false, 'Penerima tidak valid.', null);
 
         const newMessage = await prisma.message.create({
-            data: { conversationId, senderId, content: fileUrl, type: mediaType, caption: mediaType === 'AUDIO' ? null : (caption || null), waveform: waveform || null},
-            include: { sender: { select: { profile: { select: { name: true } } } } }
+            data: {
+                conversationId,
+                senderId,
+                content: fileUrl,
+                type: mediaType,
+                caption: mediaType === 'AUDIO' ? null : (caption || null),
+                waveform: waveform || null,
+                duration: duration || null
+            },
+            include: {sender: {select: {profile: {select: {name: true}}}}}
         });
 
         await prisma.conversation.update({
-            where: { id: conversationId },
-            data: { updatedAt: new Date() }
+            where: {id: conversationId},
+            data: {updatedAt: new Date()}
         });
 
         const io = getIO();
         const receiverSocketId = await redisClient.hGet('users:online', receiverId);
-
 
 
         if (receiverSocketId) {
@@ -188,7 +195,7 @@ export const uploadMediaMessage = async (req, res) => {
         } else if (!receiverUser.isBot && receiverUser.fcmToken && messaging) {
             messaging.send({
                 token: receiverUser.fcmToken,
-                notification :{
+                notification: {
                     title: newMessage.sender.profile?.name || 'New Messages',
                     body: notifBody
                 },
@@ -196,7 +203,8 @@ export const uploadMediaMessage = async (req, res) => {
                     type: 'NEW_CHAT_MESSAGE',
                     conversationId,
                     senderId,
-                }   }).catch(err => console.error('Gagal FCM:', err.message));
+                }
+            }).catch(err => console.error('Gagal FCM:', err.message));
         }
 
         if (receiverUser.isBot) {
@@ -205,8 +213,8 @@ export const uploadMediaMessage = async (req, res) => {
                     const senderSocketId = await redisClient.hGet('users:online', senderId);
 
                     await prisma.message.updateMany({
-                        where: { conversationId, senderId: senderId, isRead: false },
-                        data: { isRead: true }
+                        where: {conversationId, senderId: senderId, isRead: false},
+                        data: {isRead: true}
                     });
 
                     if (senderSocketId) {
