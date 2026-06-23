@@ -140,7 +140,7 @@ export const getChatHistory = async (req, res) => {
 
 export const uploadMediaMessage = async (req, res) => {
     const senderId = req.user.id;
-    const {conversationId, receiverId, caption, waveform, duration} = req.body;
+    const {conversationId, receiverId, caption, waveform, durationMs} = req.body;
 
     if (!conversationId || !receiverId) {
         return APIResponseBR(res, false, 'conversationId dan receiverId wajib diisi.', null);
@@ -178,7 +178,7 @@ export const uploadMediaMessage = async (req, res) => {
                 type: mediaType,
                 caption: mediaType === 'AUDIO' ? null : (caption || null),
                 waveform: waveform || null,
-                duration: duration || null
+                durationMs: durationMs || null
             },
             include: {sender: {select: {profile: {select: {name: true}}}}}
         });
