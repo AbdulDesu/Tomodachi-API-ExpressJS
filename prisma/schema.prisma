@@ -115,7 +115,7 @@ model Message {
   content        String
   caption        String?
   waveform       String?
-  durationMs     BigInt?
+  durationMs     String?
   type           MessageType @default(TEXT)
   isRead         Boolean     @default(false)
   createdAt      DateTime    @default(now())
