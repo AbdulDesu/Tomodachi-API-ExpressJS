@@ -30,7 +30,8 @@ ATURAN WAJIB (SANGAT PENTING):
         const senderName = msg.senderId === botProfile.id ? botProfile.name : 'User';
 
         if (msg.type === 'IMAGE') {
-            promptParts.push(`${senderName} mengirim sebuah foto:`);
+            const captionText = msg.caption ? ` dengan pesan: "${msg.caption}"` : '';
+            promptParts.push(`${senderName} mengirim sebuah foto${captionText}:`);
 
             const filePath = path.join(config.folderUpload, msg.content);
 
@@ -45,7 +46,32 @@ ATURAN WAJIB (SANGAT PENTING):
             } else {
                 promptParts.push(`[Gambar rusak / tidak dapat dimuat]`);
             }
-        } else {
+        }
+        else if (msg.type === 'AUDIO') {
+            promptParts.push(`${senderName} mengirim sebuah pesan suara (Voice Note):`);
+
+            const filePath = path.join(config.folderUpload, msg.content);
+
+            if (fs.existsSync(filePath)) {
+                const ext = path.extname(filePath).toLowerCase();
+
+                let audioMimeType = 'audio/mp4';
+                if (ext === '.mp3') audioMimeType = 'audio/mp3';
+                else if (ext === '.ogg') audioMimeType = 'audio/ogg';
+                else if (ext === '.wav') audioMimeType = 'audio/wav';
+
+                const base64Data = fs.readFileSync(filePath).toString('base64');
+                promptParts.push({
+                    inlineData: {
+                        data: base64Data,
+                        mimeType: audioMimeType
+                    }
+                });
+            } else {
+                promptParts.push(`[Pesan suara rusak / tidak dapat diputar]`);
+            }
+        }
+        else {
             promptParts.push(`${senderName}: ${msg.content}`);
         }
     }

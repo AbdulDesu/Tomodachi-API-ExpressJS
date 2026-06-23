@@ -138,17 +138,27 @@ export const getChatHistory = async (req, res) => {
 
 export const uploadMediaMessage = async (req, res) => {
     const senderId = req.user.id;
-    const { conversationId, receiverId } = req.body;
+    const { conversationId, receiverId, caption } = req.body;
 
     if (!conversationId || !receiverId) {
         return APIResponseBR(res, false, 'conversationId dan receiverId wajib diisi.', null);
     }
 
     if (!req.file) {
-        return APIResponseBR(res, false, 'File gambar tidak ditemukan.', null);
+        return APIResponseBR(res, false, 'File media tidak ditemukan.', null);
     }
 
-    const imageUrl = req.file.filename;
+    const fileUrl = req.file.filename;
+
+    let mediaType = 'IMAGE';
+    let notifBody="📸 Sent an image";
+
+    if (req.file.mimetype.startsWith('audio/')) {
+        mediaType = 'AUDIO';
+        notifBody = '🎤 Mengirim pesan suara';
+    } else if (caption) {
+        notifBody = `📸 ${caption}`;
+    }
 
     try {
         const receiverUser = await prisma.user.findUnique({
@@ -159,7 +169,7 @@ export const uploadMediaMessage = async (req, res) => {
         if (!receiverUser) return APIResponseBR(res, false, 'Penerima tidak valid.', null);
 
         const newMessage = await prisma.message.create({
-            data: { conversationId, senderId, content: imageUrl, type: 'IMAGE' },
+            data: { conversationId, senderId, content: fileUrl, type: 'IMAGE', caption: mediaType === 'AUDIO' ? null : (caption || null)},
             include: { sender: { select: { profile: { select: { name: true } } } } }
         });
 
@@ -171,6 +181,8 @@ export const uploadMediaMessage = async (req, res) => {
         const io = getIO();
         const receiverSocketId = await redisClient.hGet('users:online', receiverId);
 
+
+
         if (receiverSocketId) {
             io.to(receiverSocketId).emit('receive_message', newMessage);
         } else if (!receiverUser.isBot && receiverUser.fcmToken && messaging) {
@@ -178,7 +190,7 @@ export const uploadMediaMessage = async (req, res) => {
                 token: receiverUser.fcmToken,
                 notification :{
                     title: newMessage.sender.profile?.name || 'New Messages',
-                    body: '🖼️ Sending Images'
+                    body: notifBody
                 },
                 data: {
                     type: 'NEW_CHAT_MESSAGE',
@@ -216,7 +228,7 @@ export const uploadMediaMessage = async (req, res) => {
                         where: {conversationId},
                         orderBy: {createdAt: 'desc'},
                         take: 6,
-                        select: {content: true, senderId: true, type: true}
+                        select: {content: true, senderId: true, type: true, caption: true}
                     });
                     history.reverse();
 

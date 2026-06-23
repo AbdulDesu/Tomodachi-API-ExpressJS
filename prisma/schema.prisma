@@ -21,6 +21,7 @@ enum SwipeType {
 enum MessageType {
   TEXT
   IMAGE
+  AUDIO
   LOCATION
 }
 
@@ -112,6 +113,7 @@ model Message {
   conversationId String
   senderId       String
   content        String
+  caption        String?
   type           MessageType @default(TEXT)
   isRead         Boolean     @default(false)
   createdAt      DateTime    @default(now())

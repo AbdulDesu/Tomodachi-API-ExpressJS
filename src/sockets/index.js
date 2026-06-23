@@ -97,10 +97,8 @@ export const initializeSocket = (httpServer) => {
                         }).catch(err => {
                             console.error('[DEBUG FCM] Gagal dikirim ke Google:', err.message);
                         });
-
                     }
                 }
-
 
                 socket.emit('message_delivered', {
                     messageId: newMessage.id,
