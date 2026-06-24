@@ -312,7 +312,17 @@ export const initializeSocket = (httpServer) => {
                 });
             }
         });
+
+        socket.on('end_call', async (data) => {
+            const { targetId, conversationId } = data;
+            const targetSocketId = await redisClient.hGet('users:online', targetId);
+            if (targetSocketId) {
+                io.to(targetSocketId).emit('call_ended', { conversationId });
+            }
+        });
     });
+
+
 
     return io;
 };
