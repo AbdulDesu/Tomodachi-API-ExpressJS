@@ -99,7 +99,7 @@ export const initializeSocket = (httpServer) => {
                                 type: 'NEW_CHAT_MESSAGE',
                                 conversationId: String(conversationId),
                                 senderId: String(socket.userId),
-                                targetName: newMessage.sender.profile?.name,
+                                senderName: newMessage.sender.profile?.name,
                                 senderPhotoUrl: newMessage.sender.profile?.photoUrl
                             }
                         }).then((response) => {
