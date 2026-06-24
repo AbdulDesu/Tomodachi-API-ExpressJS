@@ -90,7 +90,8 @@ export const initializeSocket = (httpServer) => {
                             data: {
                                 type: 'NEW_CHAT_MESSAGE',
                                 conversationId: String(conversationId),
-                                senderId: String(socket.userId)
+                                senderId: String(socket.userId),
+                                targetName: newMessage.sender.profile?.name
                             }
                         }).then((response) => {
                             console.log('[DEBUG FCM] Sukses dikirim ke Google Server! Response:', response);
