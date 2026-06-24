@@ -21,7 +21,7 @@ export const generateCallToken = async (req, res) => {
     const role = RtcRole.PUBLISHER;
     const expirationTimeInSeconds = 3600;
 
-    const token = RtcTokenBuilder.buildTokenWithAccount(
+    const token = RtcTokenBuilder.buildTokenWithUserAccount(
         appId,
         appCertificate,
         conversationId,
