@@ -218,6 +218,90 @@ export const initializeSocket = (httpServer) => {
             await redisClient.hDel('users:online', socket.userId);
             socket.broadcast.emit('user_status_changed', { userId: socket.userId, isOnline: false });
         });
+
+        socket.on('initiate_call', async (data) => {
+            const { receiverId, conversationId, callType } = data;
+
+            try {
+                const receiverUser = await prisma.user.findUnique({
+                    where: { id: receiverId },
+                    select: { isBot: true, fcmToken: true }
+                });
+
+                if (!receiverUser) {
+                    socket.emit('call_rejected', { conversationId, reason: 'Pengguna tidak ditemukan.' });
+                    return;
+                }
+
+                if (receiverUser.isBot) {
+                    socket.emit('call_rejected', {
+                        conversationId,
+                        reason: 'Only real user allowed to do call'
+                    });
+                    return;
+                }
+
+                const callerInfo = await prisma.user.findUnique({
+                    where: { id: socket.userId },
+                    select: { profile: { select: { name: true, photoUrl: true } } }
+                });
+
+                const receiverSocketId = await redisClient.hGet('users:online', receiverId);
+
+                if (receiverSocketId) {
+                    io.to(receiverSocketId).emit('incoming_call', {
+                        callerId: socket.userId,
+                        callerName: callerInfo?.profile?.name || 'Seseorang',
+                        callerPhoto: callerInfo?.profile?.photoUrl || null,
+                        conversationId,
+                        callType
+                    });
+                } else {
+                    if (receiverUser.fcmToken && messaging) {
+                        messaging.send({
+                            token: receiverUser.fcmToken,
+                            data: {
+                                type: 'INCOMING_CALL',
+                                callerId: socket.userId,
+                                callerName: callerInfo?.profile?.name || 'Seseorang',
+                                conversationId,
+                                callType
+                            }
+                        }).catch(err => console.error('Gagal FCM Call:', err.message));
+                    } else {
+                        socket.emit('call_rejected', { conversationId, reason: 'OFFLINE' });
+                    }
+                }
+            } catch (error) {
+                console.error('Gagal initiate_call:', error);
+            }
+        });
+
+        socket.on('accept_call', async (data) => {
+            const { callerId, conversationId } = data;
+
+            const callerSocketId = await redisClient.hGet('users:online', callerId);
+
+            if (callerSocketId) {
+                io.to(callerSocketId).emit('call_accepted', {
+                    receiverId: socket.userId,
+                    conversationId
+                });
+            }
+        });
+
+        socket.on('reject_call', async (data) => {
+            const { targetId, conversationId, reason } = data;
+
+            const targetSocketId = await redisClient.hGet('users:online', targetId);
+
+            if (targetSocketId) {
+                io.to(targetSocketId).emit('call_rejected', {
+                    conversationId,
+                    reason: reason || 'DECLINED'
+                });
+            }
+        });
     });
 
     return io;

@@ -26,10 +26,6 @@ export const APIResponseBR = (res, isOk, message, data) => {
     return sendResponse(res, 400, isOk, message, data);
 };
 
-export const handleErrorAsync = (func) => (req, res, next) => {
-    Promise.resolve(func(req, res, next)).catch(next);
-};
-
 export const isEmptyObj = (obj) => {
     if (!obj) return true;
     if (Array.isArray(obj)) return obj.length === 0;

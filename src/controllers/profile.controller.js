@@ -1,7 +1,7 @@
 import prisma from '../config/database.js';
-import {APIResponseOK, APIResponseBR, APIResponseErr, handleErrorAsync, APIResponseNF} from '../helper/api.js';
+import {APIResponseOK, APIResponseBR, APIResponseErr, APIResponseNF} from '../helper/api.js';
 
-export const getProfileById = handleErrorAsync(async (req, res) => {
+export const getProfileById = async (req, res) =>{
     const userId = req.user.id;
 
     const userData = await prisma.user.findUnique({
@@ -33,9 +33,9 @@ export const getProfileById = handleErrorAsync(async (req, res) => {
     };
 
     return APIResponseOK(res, true, "Berhasil mendapatkan profil lengkap", formattedProfile);
-});
+};
 
-export const upsertProfile = handleErrorAsync(async (req, res) => {
+export const upsertProfile = async (req, res) => {
     const userId = req.user.id;
 
     let { name, birthdate, tags, latitude, longitude, pGender, gender } = req.body;
@@ -78,102 +78,90 @@ export const upsertProfile = handleErrorAsync(async (req, res) => {
         }
     }
 
-    try {
-        let profile = await prisma.profile.findFirst({
-            where: { userId: userId }
+    let profile = await prisma.profile.findFirst({
+        where: { userId: userId }
+    });
+
+    const dataPayload = {
+        name,
+        ...(photoUrl && { photoUrl }),
+        birthdate: validBirthdate,
+        tags: tags,
+        gender: gender,
+        preferredGender: pGender
+    };
+
+    if (profile) {
+        profile = await prisma.profile.update({
+            where: { id: profile.id },
+            data: dataPayload
         });
+    } else {
+        profile = await prisma.profile.create({
+            data: {
+                userId: userId,
+                ...dataPayload
+            }
+        });
+    }
 
-        const dataPayload = {
-            name,
-            ...(photoUrl && { photoUrl }),
-            birthdate: validBirthdate,
-            tags: tags,
-            gender: gender,
-            preferredGender: pGender
-        };
-
-        if (profile) {
-            profile = await prisma.profile.update({
-                where: { id: profile.id },
-                data: dataPayload
-            });
-        } else {
-            profile = await prisma.profile.create({
-                data: {
-                    userId: userId,
-                    ...dataPayload
-                }
-            });
-        }
-
-        await prisma.$executeRaw`
+    await prisma.$executeRaw`
             UPDATE "Profile"
             SET location = ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)
             WHERE id = ${profile.id}
         `;
 
-        return APIResponseOK(res, true, 'Profil & Foto berhasil disimpan.', {
-            profileId: profile.id,
-            photoUrl: profile.photoUrl
-        });
+    return APIResponseOK(res, true, 'Profil & Foto berhasil disimpan.', {
+        profileId: profile.id,
+        photoUrl: profile.photoUrl
+    });
+};
 
-    } catch (error) {
-        console.error('Gagal menyimpan profil:', error);
-        return APIResponseErr(res, false, 'Terjadi kesalahan internal saat menyimpan profil.', null);
-    }
-});
-
-export const updateProfileFields = handleErrorAsync(async (req, res) => {
+export const updateProfileFields = async (req, res) => {
     const userId = req.user.id;
     const { name, bio, birthdate, gender, preferredGender, tags, latitude, longitude } = req.body;
 
-    try {
-        const updateData = {};
+    const updateData = {};
 
-        if (name !== undefined) updateData.name = name;
-        if (bio !== undefined) updateData.bio = bio;
-        if (gender !== undefined) updateData.gender = gender;
-        if (preferredGender !== undefined) updateData.preferredGender = preferredGender;
-        if (birthdate !== undefined) updateData.birthdate = birthdate ? new Date(birthdate) : null;
+    if (name !== undefined) updateData.name = name;
+    if (bio !== undefined) updateData.bio = bio;
+    if (gender !== undefined) updateData.gender = gender;
+    if (preferredGender !== undefined) updateData.preferredGender = preferredGender;
+    if (birthdate !== undefined) updateData.birthdate = birthdate ? new Date(birthdate) : null;
 
-        if (tags !== undefined) {
-            updateData.tags = typeof tags === 'string' ? JSON.parse(tags) : tags;
-            if (updateData.tags.length < 3) {
-                return APIResponseBR(res, false, 'Minat (tags) minimal harus berjumlah 3 opsi.', null);
-            }
+    if (tags !== undefined) {
+        updateData.tags = typeof tags === 'string' ? JSON.parse(tags) : tags;
+        if (updateData.tags.length < 3) {
+            return APIResponseBR(res, false, 'Minat (tags) minimal harus berjumlah 3 opsi.', null);
         }
+    }
 
-        if (req.file) {
-            updateData.photoUrl = req.file.filename;
-        }
+    if (req.file) {
+        updateData.photoUrl = req.file.filename;
+    }
 
-        const updatedProfile = await prisma.profile.update({
-            where: { userId: userId },
-            data: updateData
-        });
+    const updatedProfile = await prisma.profile.update({
+        where: { userId: userId },
+        data: updateData
+    });
 
-        if (latitude !== undefined && longitude !== undefined) {
-            const lat = parseFloat(latitude);
-            const lng = parseFloat(longitude);
+    if (latitude !== undefined && longitude !== undefined) {
+        const lat = parseFloat(latitude);
+        const lng = parseFloat(longitude);
 
-            if (!isNaN(lat) && !isNaN(lng)) {
-                await prisma.$executeRaw`
+        if (!isNaN(lat) && !isNaN(lng)) {
+            await prisma.$executeRaw`
                     UPDATE "Profile"
                     SET location = ST_SetSRID(ST_MakePoint(${lng}, ${lat}), 4326)
                     WHERE "userId" = ${userId}
                 `;
-            }
         }
-
-        return APIResponseOK(res, true, 'Perubahan profil berhasil disimpan.', updatedProfile);
-
-    } catch (error) {
-        console.error('Gagal memperbarui data profil secara parsial:', error);
-        return APIResponseErr(res, false, 'Gagal memproses pembaruan data profil.', null);
     }
-});
 
-export const uploadHighlightPhotos = handleErrorAsync(async (req, res) => {
+    return APIResponseOK(res, true, 'Perubahan profil berhasil disimpan.', updatedProfile);
+};
+
+export const uploadHighlightPhotos = async (req, res) => {
     const userId = req.user.id;
     const files = req.files;
 
@@ -181,46 +169,41 @@ export const uploadHighlightPhotos = handleErrorAsync(async (req, res) => {
         return APIResponseBR(res, false, 'Tidak ada foto yang diunggah.', null);
     }
 
-    try {
-        const currentPhotosCount = await prisma.userPhoto.count({
-            where: { userId: userId }
-        });
+    const currentPhotosCount = await prisma.userPhoto.count({
+        where: { userId: userId }
+    });
 
-        const maxPhotosAllowed = 6;
-        if (currentPhotosCount + files.length > maxPhotosAllowed) {
-            return APIResponseBR(res, false, `Kuota penuh. Kamu hanya bisa menambah ${maxPhotosAllowed - currentPhotosCount} foto lagi.`, null);
-        }
-
-        const lastPhoto = await prisma.userPhoto.aggregate({
-            where: { userId: userId },
-            _max: { order: true }
-        });
-
-        let nextOrder = lastPhoto._max.order !== null ? lastPhoto._max.order + 1 : 0;
-
-        const photosData = files.map((file) => {
-            const data = {
-                userId: userId,
-                url: file.filename,
-                order: nextOrder
-            };
-            nextOrder++;
-            return data;
-        });
-
-        await prisma.userPhoto.createMany({
-            data: photosData
-        });
-
-        const updatedHighlights = await prisma.userPhoto.findMany({
-            where: { userId: userId },
-            orderBy: { order: 'asc' },
-            select: { id: true, url: true, order: true }
-        });
-
-        return APIResponseOK(res, true, 'Highlight foto berhasil ditambahkan.', updatedHighlights);
-    } catch (error) {
-        console.error('Gagal mengunggah foto highlight:', error);
-        return APIResponseErr(res, false, 'Terjadi kesalahan sistem saat menyimpan foto.', null);
+    const maxPhotosAllowed = 6;
+    if (currentPhotosCount + files.length > maxPhotosAllowed) {
+        return APIResponseBR(res, false, `Kuota penuh. Kamu hanya bisa menambah ${maxPhotosAllowed - currentPhotosCount} foto lagi.`, null);
     }
-});
+
+    const lastPhoto = await prisma.userPhoto.aggregate({
+        where: { userId: userId },
+        _max: { order: true }
+    });
+
+    let nextOrder = lastPhoto._max.order !== null ? lastPhoto._max.order + 1 : 0;
+
+    const photosData = files.map((file) => {
+        const data = {
+            userId: userId,
+            url: file.filename,
+            order: nextOrder
+        };
+        nextOrder++;
+        return data;
+    });
+
+    await prisma.userPhoto.createMany({
+        data: photosData
+    });
+
+    const updatedHighlights = await prisma.userPhoto.findMany({
+        where: { userId: userId },
+        orderBy: { order: 'asc' },
+        select: { id: true, url: true, order: true }
+    });
+
+    return APIResponseOK(res, true, 'Highlight foto berhasil ditambahkan.', updatedHighlights);
+};

@@ -1,11 +1,11 @@
 import prisma from '../config/database.js';
 import redisClient from '../config/redis.js';
-import {APIResponseOK, APIResponseErr, APIResponseBR, handleErrorAsync} from '../helper/api.js';
+import {APIResponseOK, APIResponseErr, APIResponseBR} from '../helper/api.js';
 import {messaging} from '../config/firebase.js';
 import {getIO} from "../sockets/index.js";
 import {generateBotReply} from "../helper/gemini.js";
 
-export const getChatList = handleErrorAsync(async (req, res) => {
+export const getChatList = async (req, res) => {
     const currentUserId = req.user.id;
 
     const conversations = await prisma.conversation.findMany({
@@ -99,7 +99,8 @@ export const getChatList = handleErrorAsync(async (req, res) => {
     });
 
     return APIResponseOK(res, true, 'Berhasil memuat daftar obrolan.', formattedChatList);
-});
+};
+
 export const getChatHistory = async (req, res) => {
     const {conversationId} = req.params;
 
@@ -162,123 +163,117 @@ export const uploadMediaMessage = async (req, res) => {
         notifBody = `📸 ${caption}`;
     }
 
-    try {
-        const receiverUser = await prisma.user.findUnique({
-            where: {id: receiverId},
-            include: {profile: true}
-        });
+    const receiverUser = await prisma.user.findUnique({
+        where: {id: receiverId},
+        include: {profile: true}
+    });
 
-        if (!receiverUser) return APIResponseBR(res, false, 'Penerima tidak valid.', null);
+    if (!receiverUser) return APIResponseBR(res, false, 'Penerima tidak valid.', null);
 
-        const newMessage = await prisma.message.create({
+    const newMessage = await prisma.message.create({
+        data: {
+            conversationId,
+            senderId,
+            content: fileUrl,
+            type: mediaType,
+            caption: mediaType === 'AUDIO' ? null : (caption || null),
+            waveform: waveform || null,
+            durationMs: durationMs || null
+        },
+        include: {sender: {select: {profile: {select: {name: true}}}}}
+    });
+
+    await prisma.conversation.update({
+        where: {id: conversationId},
+        data: {updatedAt: new Date()}
+    });
+
+    const io = getIO();
+    const receiverSocketId = await redisClient.hGet('users:online', receiverId);
+
+
+    if (receiverSocketId) {
+        io.to(receiverSocketId).emit('receive_message', newMessage);
+    } else if (!receiverUser.isBot && receiverUser.fcmToken && messaging) {
+        messaging.send({
+            token: receiverUser.fcmToken,
+            notification: {
+                title: newMessage.sender.profile?.name || 'New Messages',
+                body: notifBody
+            },
             data: {
+                type: 'NEW_CHAT_MESSAGE',
                 conversationId,
                 senderId,
-                content: fileUrl,
-                type: mediaType,
-                caption: mediaType === 'AUDIO' ? null : (caption || null),
-                waveform: waveform || null,
-                durationMs: durationMs || null
-            },
-            include: {sender: {select: {profile: {select: {name: true}}}}}
-        });
+            }
+        }).catch(err => console.error('Gagal FCM:', err.message));
+    }
 
-        await prisma.conversation.update({
-            where: {id: conversationId},
-            data: {updatedAt: new Date()}
-        });
+    if (receiverUser.isBot) {
+        await (async () => {
+            try {
+                const senderSocketId = await redisClient.hGet('users:online', senderId);
 
-        const io = getIO();
-        const receiverSocketId = await redisClient.hGet('users:online', receiverId);
+                await prisma.message.updateMany({
+                    where: {conversationId, senderId: senderId, isRead: false},
+                    data: {isRead: true}
+                });
 
+                if (senderSocketId) {
+                    io.to(senderSocketId).emit('messages_marked_as_read', {
+                        conversationId,
+                        readerId: receiverId
+                    });
 
-        if (receiverSocketId) {
-            io.to(receiverSocketId).emit('receive_message', newMessage);
-        } else if (!receiverUser.isBot && receiverUser.fcmToken && messaging) {
-            messaging.send({
-                token: receiverUser.fcmToken,
-                notification: {
-                    title: newMessage.sender.profile?.name || 'New Messages',
-                    body: notifBody
-                },
-                data: {
-                    type: 'NEW_CHAT_MESSAGE',
-                    conversationId,
-                    senderId,
+                    io.to(senderSocketId).emit('user_typing', {
+                        senderId: receiverId,
+                        conversationId,
+                        isTyping: true
+                    });
                 }
-            }).catch(err => console.error('Gagal FCM:', err.message));
-        }
 
-        if (receiverUser.isBot) {
-            await (async () => {
-                try {
-                    const senderSocketId = await redisClient.hGet('users:online', senderId);
+                await new Promise(resolve => setTimeout(resolve, 1500));
 
-                    await prisma.message.updateMany({
-                        where: {conversationId, senderId: senderId, isRead: false},
-                        data: {isRead: true}
-                    });
+                const history = await prisma.message.findMany({
+                    where: {conversationId},
+                    orderBy: {createdAt: 'desc'},
+                    take: 6,
+                    select: {content: true, senderId: true, type: true, caption: true}
+                });
+                history.reverse();
 
-                    if (senderSocketId) {
-                        io.to(senderSocketId).emit('messages_marked_as_read', {
-                            conversationId,
-                            readerId: receiverId
-                        });
+                const aiResponseText = await generateBotReply({...receiverUser.profile, id: receiverId}, history);
 
-                        io.to(senderSocketId).emit('user_typing', {
-                            senderId: receiverId,
-                            conversationId,
-                            isTyping: true
-                        });
-                    }
+                const botMessage = await prisma.message.create({
+                    data: {conversationId, senderId: receiverId, content: aiResponseText, type: 'TEXT'},
+                    include: {sender: {select: {profile: {select: {name: true}}}}}
+                });
 
-                    await new Promise(resolve => setTimeout(resolve, 1500));
+                await prisma.conversation.update({
+                    where: {id: conversationId},
+                    data: {updatedAt: new Date()}
+                });
 
-                    const history = await prisma.message.findMany({
-                        where: {conversationId},
-                        orderBy: {createdAt: 'desc'},
-                        take: 6,
-                        select: {content: true, senderId: true, type: true, caption: true}
-                    });
-                    history.reverse();
-
-                    const aiResponseText = await generateBotReply({...receiverUser.profile, id: receiverId}, history);
-
-                    const botMessage = await prisma.message.create({
-                        data: {conversationId, senderId: receiverId, content: aiResponseText, type: 'TEXT'},
-                        include: {sender: {select: {profile: {select: {name: true}}}}}
-                    });
-
-                    await prisma.conversation.update({
-                        where: {id: conversationId},
-                        data: {updatedAt: new Date()}
-                    });
-
-                    if (senderSocketId) {
-                        io.to(senderSocketId).emit('user_typing', {
-                            senderId: receiverId,
-                            conversationId,
-                            isTyping: false
-                        });
-                        io.to(senderSocketId).emit('receive_message', botMessage);
-                    }
-
-                } catch (botError) {
-                    console.error("Gagal AI Gambar:", botError);
-                    const senderSocketId = await redisClient.hGet('users:online', senderId);
-                    if (senderSocketId) io.to(senderSocketId).emit('user_typing', {
+                if (senderSocketId) {
+                    io.to(senderSocketId).emit('user_typing', {
                         senderId: receiverId,
                         conversationId,
                         isTyping: false
                     });
+                    io.to(senderSocketId).emit('receive_message', botMessage);
                 }
-            })();
-        }
 
-        return APIResponseOK(res, true, 'Gambar berhasil diunggah dan dikirim.', newMessage);
-
-    } catch (error) {
-        console.error('Gagal memproses upload media chat:', error);
-        return APIResponseErr(res, false, 'Terjadi kesalahan sistem saat mengirim gambar.', null);
+            } catch (botError) {
+                console.error("Gagal AI Gambar:", botError);
+                const senderSocketId = await redisClient.hGet('users:online', senderId);
+                if (senderSocketId) io.to(senderSocketId).emit('user_typing', {
+                    senderId: receiverId,
+                    conversationId,
+                    isTyping: false
+                });
+            }
+        })();
     }
+
+    return APIResponseOK(res, true, 'Gambar berhasil diunggah dan dikirim.', newMessage);
 };

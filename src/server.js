@@ -8,10 +8,12 @@ import authRoutes from "./routes/auth.route.js";
 import profileRoutes from "./routes/profile.route.js";
 import discoverRoutes from "./routes/discover.route.js";
 import chatRoutes from "./routes/chat.routes.js";
+import callRoutes from "./routes/call.route.js";
 
 const PORT = process.env.PORT || 705;
 const app = express();
 import config from './config/config.js';
+
 
 const httpServer = http.createServer(app);
 
@@ -23,6 +25,7 @@ app.use('/auth', authRoutes);
 app.use('/profile', profileRoutes);
 app.use('/discover', discoverRoutes);
 app.use('/chat', chatRoutes)
+app.use('/call', callRoutes)
 
 function errorHandler(err, req, res, _) {
     console.error(err.stack);

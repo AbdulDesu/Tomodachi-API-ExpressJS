@@ -7,16 +7,14 @@ import {
     APIResponseOK,
     APIResponseBR,
     APIResponseErr,
-    handleErrorAsync,
     APIResponseUnAuth,
-    APIResponseNF
 } from '../helper/api.js';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'tomodachi-super-secret-key-2026';
 const OTP_TTL_SECONDS = 180;
 const SALT_ROUNDS = 10;
 
-export const requestOtp = handleErrorAsync(async (req, res) => {
+export const requestOtp = async (req, res) =>{
     const { phone, fcmToken } = req.body;
 
     if (!phone || !fcmToken) {
@@ -49,9 +47,9 @@ export const requestOtp = handleErrorAsync(async (req, res) => {
     console.log(`[DEV ONLY] OTP untuk ${phone} adalah: ${otp}`);
 
     return APIResponseOK(res, true, 'OTP berhasil dikirim via notifikasi.');
-});
+};
 
-export const resendOtp = handleErrorAsync(async (req, res) => {
+export const resendOtp = async (req, res) =>{
     const { phone, fcmToken } = req.body;
 
     if (!phone || !fcmToken) {
@@ -92,9 +90,9 @@ export const resendOtp = handleErrorAsync(async (req, res) => {
     console.log(`[DEV ONLY - RESEND] OTP TERBARU untuk ${phone} adalah: ${newOtp}`);
 
     return APIResponseOK(res, true, 'OTP terbaru berhasil dikirim via notifikasi.');
-});
+};
 
-export const verifyOtp = handleErrorAsync(async (req, res) => {
+export const verifyOtp = async (req, res) => {
     const { phone, otp, fcmToken } = req.body;
 
     if (!phone || !otp || !fcmToken) {
@@ -140,9 +138,9 @@ export const verifyOtp = handleErrorAsync(async (req, res) => {
         user,
         isProfileComplete: !!profile
     });
-});
+};
 
-export const setAccountPassword = handleErrorAsync(async (req, res) => {
+export const setAccountPassword = async (req, res) => {
     const userId = req.user.id;
     const { password } = req.body;
 
@@ -150,66 +148,55 @@ export const setAccountPassword = handleErrorAsync(async (req, res) => {
         return APIResponseBR(res, false, 'Password minimal harus terdiri dari 6 karakter.');
     }
 
-    try {
-        const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
+    const hashedPassword = await bcrypt.hash(password, SALT_ROUNDS);
 
-        await prisma.user.update({
-            where: { id: userId },
-            data: { password: hashedPassword }
-        });
+    await prisma.user.update({
+        where: { id: userId },
+        data: { password: hashedPassword }
+    });
 
-        return APIResponseOK(res, true, 'Keamanan akun berhasil ditingkatkan. Password telah aktif.');
-    } catch (error) {
-        console.error('Gagal menyetel password:', error);
-        return APIResponseErr(res, false, 'Terjadi kesalahan internal saat memproses password.');
-    }
-});
+    return APIResponseOK(res, true, 'Keamanan akun berhasil ditingkatkan. Password telah aktif.');
+};
 
-export const loginWithPassword = handleErrorAsync(async (req, res) => {
+export const loginWithPassword = async (req, res) => {
     const { phone, password, fcmToken } = req.body;
 
     if (!phone || !password) {
         return APIResponseBR(res, false, 'Nomor telepon dan password wajib diisi.');
     }
 
-    try {
-        const user = await prisma.user.findUnique({
-            where: { phone: phone }
-        });
+    const user = await prisma.user.findUnique({
+        where: { phone: phone }
+    });
 
-        if (!user || !user.password) {
-            return APIResponseUnAuth(res, false, 'Kredensial salah atau akun Anda belum mengaktifkan password.');
-        }
-
-        const isPasswordMatch = await bcrypt.compare(password, user.password);
-
-        if (!isPasswordMatch) {
-            return APIResponseUnAuth(res, false, 'Nomor telepon atau password salah.');
-        }
-
-        if (fcmToken && fcmToken !== user.fcmToken) {
-            await prisma.user.update({
-                where: { id: user.id },
-                data: { fcmToken: fcmToken }
-            });
-        }
-
-        const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '30d' });
-        const profile = await prisma.profile.findUnique({ where: { userId: user.id } });
-
-        return APIResponseOK(res, true, 'Login berhasil via password.', {
-            token,
-            user: { id: user.id, phone: user.phone, isBot: user.isBot },
-            isProfileComplete: !!profile
-        });
-
-    } catch (error) {
-        console.error('Gagal login via password:', error);
-        return APIResponseErr(res, false, 'Terjadi kesalahan sistem saat memproses login.');
+    if (!user || !user.password) {
+        return APIResponseUnAuth(res, false, 'Kredensial salah atau akun Anda belum mengaktifkan password.');
     }
-});
 
-export const identifyPhoneNumber = handleErrorAsync(async (req, res) => {
+    const isPasswordMatch = await bcrypt.compare(password, user.password);
+
+    if (!isPasswordMatch) {
+        return APIResponseUnAuth(res, false, 'Nomor telepon atau password salah.');
+    }
+
+    if (fcmToken && fcmToken !== user.fcmToken) {
+        await prisma.user.update({
+            where: { id: user.id },
+            data: { fcmToken: fcmToken }
+        });
+    }
+
+    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '30d' });
+    const profile = await prisma.profile.findUnique({ where: { userId: user.id } });
+
+    return APIResponseOK(res, true, 'Login berhasil via password.', {
+        token,
+        user: { id: user.id, phone: user.phone, isBot: user.isBot },
+        isProfileComplete: !!profile
+    });
+};
+
+export const identifyPhoneNumber = async (req, res) => {
     const {phone} = req.body;
 
     if (!phone || !phone.length) {
@@ -227,4 +214,4 @@ export const identifyPhoneNumber = handleErrorAsync(async (req, res) => {
     }
 
     return APIResponseOK(res,true, "Login Berhasil." );
-})
+}
