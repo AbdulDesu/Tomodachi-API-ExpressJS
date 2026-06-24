@@ -1,4 +1,5 @@
-import { RtcTokenBuilder, RtcRole } from 'agora-token';
+import agoraToken from 'agora-token';
+const { RtcTokenBuilder, RtcRole } = agoraToken;
 
 import {APIResponseOK, APIResponseErr, APIResponseBR} from '../helper/api.js';
 
