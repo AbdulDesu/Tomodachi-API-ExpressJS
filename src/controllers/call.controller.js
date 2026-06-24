@@ -4,7 +4,7 @@ const { RtcTokenBuilder, RtcRole } = agoraToken;
 import {APIResponseOK, APIResponseErr, APIResponseBR} from '../helper/api.js';
 
 export const generateCallToken = async (req, res) => {
-    const { conversationId } = req.body;
+    const { conversationId } = req.params;
     const currentUserId = req.user.id;
 
     if (!conversationId) {
