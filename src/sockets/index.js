@@ -55,7 +55,15 @@ export const initializeSocket = (httpServer) => {
                         content,
                         type: type || 'TEXT'
                     },
-                    include: { sender: { select: { profile: { select: { name: true } } } } }
+                    include: {
+                        sender: {
+                            select: {
+                                profile: {
+                                    select: { name: true, photoUrl: true }
+                                }
+                            }
+                        }
+                    }
                 });
 
                 await prisma.conversation.update({
@@ -91,7 +99,8 @@ export const initializeSocket = (httpServer) => {
                                 type: 'NEW_CHAT_MESSAGE',
                                 conversationId: String(conversationId),
                                 senderId: String(socket.userId),
-                                targetName: newMessage.sender.profile?.name
+                                targetName: newMessage.sender.profile?.name,
+                                senderPhotoUrl: newMessage.sender.profile?.photoUrl
                             }
                         }).then((response) => {
                             console.log('[DEBUG FCM] Sukses dikirim ke Google Server! Response:', response);
