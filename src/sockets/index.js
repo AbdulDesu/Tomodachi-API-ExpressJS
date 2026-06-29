@@ -261,7 +261,7 @@ export const initializeSocket = (httpServer) => {
                 if (receiverSocketId) {
                     io.to(receiverSocketId).emit('incoming_call', {
                         callerId: socket.userId,
-                        callerName: callerInfo?.profile?.name || 'Seseorang',
+                        callerName: callerInfo?.profile?.name || 'Someone',
                         callerPhoto: callerInfo?.profile?.photoUrl || null,
                         conversationId,
                         callType
@@ -273,7 +273,8 @@ export const initializeSocket = (httpServer) => {
                             data: {
                                 type: 'INCOMING_CALL',
                                 callerId: socket.userId,
-                                callerName: callerInfo?.profile?.name || 'Seseorang',
+                                callerName: callerInfo?.profile?.name || 'Someone',
+                                callerPhoto: callerInfo?.profile?.photoUrl || null,
                                 conversationId,
                                 callType
                             }
