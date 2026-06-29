@@ -288,6 +288,18 @@ export const initializeSocket = (httpServer) => {
             }
         });
 
+        socket.on('call_ringing', async (data) => {
+            const { callerId, conversationId } = data;
+
+            const callerSocketId = await redisClient.hGet('users:online', callerId);
+
+            if (callerSocketId) {
+                io.to(callerSocketId).emit('call_is_ringing', {
+                    conversationId
+                });
+            }
+        });
+
         socket.on('accept_call', async (data) => {
             const { callerId, conversationId } = data;
 
@@ -313,6 +325,7 @@ export const initializeSocket = (httpServer) => {
                 });
             }
         });
+
 
         socket.on('end_call', async (data) => {
             const { targetId, conversationId } = data;
