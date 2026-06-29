@@ -5,7 +5,6 @@ import {APIResponseOK, APIResponseErr, APIResponseBR} from '../helper/api.js';
 
 export const generateCallToken = async (req, res) => {
     const { conversationId } = req.params;
-    const currentUserId = req.user.id;
 
     if (!conversationId) {
         return APIResponseBR(res, false, 'conversationId wajib dikirim.');
@@ -18,22 +17,26 @@ export const generateCallToken = async (req, res) => {
         return APIResponseErr(res, false, 'Konfigurasi Agora di server belum diatur.');
     }
 
+    const uid = 0;
     const role = RtcRole.PUBLISHER;
-    const expirationTimeInSeconds = 3600;
 
-    const token = RtcTokenBuilder.buildTokenWithUserAccount(
+    const expirationTimeInSeconds = 3600;
+    const currentTimestamp = Math.floor(Date.now() / 1000);
+    const privilegeExpiredTs = currentTimestamp + expirationTimeInSeconds;
+
+    const token = RtcTokenBuilder.buildTokenWithUid(
         appId,
         appCertificate,
         conversationId,
-        currentUserId,
+        uid,
         role,
-        expirationTimeInSeconds,
-        expirationTimeInSeconds
+        privilegeExpiredTs,
+        privilegeExpiredTs
     );
 
     return APIResponseOK(res, true, 'Token panggilan berhasil di-generate', {
         token: token,
         channelName: conversationId,
-        uid: currentUserId
+        uid: uid
     });
 };
